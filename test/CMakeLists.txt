@@ -1,5 +1,11 @@
+if (NOT GTEST_FOUND OR NOT GMOCK_FOUND)
+    message(STATUS "Ignoring test folder because either GTest or GMock"
+                   " was not found on your system.")
+    return()
+endif()
+
 # Add the executable
-add_executable(AresCoreTest 
+add_executable(AresCoreTest
     TestMain.cpp
     TestCore.cpp
 )

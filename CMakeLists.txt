@@ -6,6 +6,9 @@ set(${PROJECT_NAME}_MAJOR_VERSION 0)
 set(${PROJECT_NAME}_MINOR_VERSION 0)
 set(${PROJECT_NAME}_PATCH_VERSION 0)
 
+# Adding cmake/Modules path to modules path
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/Modules")
+
 # Using C++11
 include(CheckCXXCompilerFlag)
 check_cxx_compiler_flag(-std=c++11 COMPILER_SUPPORTS_CXX11)
@@ -23,7 +26,8 @@ find_package(Threads REQUIRED)
 
 # Testing
 enable_testing()
-find_package(GTest REQUIRED)
+find_package(GTest)
+find_package(GMock)
 
 # Core library declaration
 add_library(AresCore STATIC
