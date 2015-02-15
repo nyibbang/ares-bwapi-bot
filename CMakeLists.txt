@@ -6,22 +6,14 @@ set(${PROJECT_NAME}_MAJOR_VERSION 0)
 set(${PROJECT_NAME}_MINOR_VERSION 0)
 set(${PROJECT_NAME}_PATCH_VERSION 0)
 
-# Adding cmake/Modules path to modules path
+# Modules and packages
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/Modules")
 include(EnableCXX11)
 find_package(Threads REQUIRED)
-
-# Testing
 enable_testing()
 find_package(GTest)
 find_package(GMock)
 
-# Core library declaration
-add_library(AresCore STATIC
-    Core.h Core.cpp
-)
-include_directories(.)
-
-# Addition of the test folder
-add_subdirectory(test)
+# Subdirectories
+add_subdirectory(corelib)
 
