@@ -19,4 +19,5 @@ enable_testing()
 # Subdirectories
 add_subdirectory(third_party)
 add_subdirectory(corelib)
+add_subdirectory(module)
 
