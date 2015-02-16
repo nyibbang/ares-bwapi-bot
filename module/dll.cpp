@@ -1,4 +1,4 @@
-#include "ExampleAIModule.h"
+#include "AresAIModule.h"
 #include <BWAPI.h>
 
 extern "C" __declspec(dllexport) void gameInit(BWAPI::Game* game)

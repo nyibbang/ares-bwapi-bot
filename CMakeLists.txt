@@ -16,6 +16,9 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/Modules")
 include(EnableCXX11)
 enable_testing()
 
+# Debug libraries should be postfixed with a 'd'
+set(CMAKE_DEBUG_POSTFIX "d")
+
 # Subdirectories
 add_subdirectory(third_party)
 add_subdirectory(corelib)

@@ -4,27 +4,27 @@
 void AresAIModule::onStart()
 {
     // Hello World!
-    Broodwar->sendText("Hello world from AresBWAPIBot !");
+    BWAPI::Broodwar->sendText("Hello world from AresBWAPIBot !");
 
     // Print the map name.
-    Broodwar << "Map name is " << Broodwar->mapName() << "." << std::endl;
+    BWAPI::Broodwar << "Map name is " << BWAPI::Broodwar->mapName() << "." << std::endl;
 
     // Set the command optimization level so that common commands can be grouped
     // and reduce the bot's APM (Actions Per Minute).
-    Broodwar->setCommandOptimizationLevel(2);
+    BWAPI::Broodwar->setCommandOptimizationLevel(2);
 
     // Check if this is a replay
-    if (Broodwar->isReplay())
+    if (BWAPI::Broodwar->isReplay())
     {
         // Announce the players in the replay
-        Broodwar << "Players in this replay:" << std::endl;
+        BWAPI::Broodwar << "Players in this replay:" << std::endl;
 
         // Iterate all the players in the game using a std:: iterator
-        for(auto p : Broodwar->getPlayers())
+        for(auto p : BWAPI::Broodwar->getPlayers())
         {
             // Only print the player if they are not an observer
             if (!p->isObserver()) {
-                Broodwar << p->getName() << ", playing as " << p->getRace() << std::endl;
+                BWAPI::Broodwar << p->getName() << ", playing as " << p->getRace() << std::endl;
             }
         }
 
@@ -33,8 +33,8 @@ void AresAIModule::onStart()
     {
         // Retrieve you and your enemy's races. enemy() will just return the first enemy.
         // If you wish to deal with multiple enemies then you must use enemies().
-        if (Broodwar->enemy()) { // First make sure there is an enemy
-            Broodwar << "Matchup is " << Broodwar->self()->getRace() << " vs " << Broodwar->enemy()->getRace() << std::endl;
+        if (BWAPI::Broodwar->enemy()) { // First make sure there is an enemy
+            BWAPI::Broodwar << "Matchup is " << BWAPI::Broodwar->self()->getRace() << " vs " << BWAPI::Broodwar->enemy()->getRace() << std::endl;
         }
     }
 
@@ -45,34 +45,34 @@ void AresAIModule::onEnd(bool isWinner)
     // Called when the game ends
     if (isWinner)
     {
-        Broodwar << "AresBWAPIBot won the game." << std::endl;
+        BWAPI::Broodwar << "AresBWAPIBot won the game." << std::endl;
     }
 }
 
 void AresAIModule::onSaveGame(std::string gameName)
 {
-    Broodwar << "The game was saved to \"" << gameName << "\"" << std::endl;
+    BWAPI::Broodwar << "The game was saved to \"" << gameName << "\"" << std::endl;
 }
 
 void AresAIModule::onFrame()
 {
     // Display the game frame rate as text in the upper left area of the screen
-    Broodwar->drawTextScreen(200, 0,  "FPS: %d",         Broodwar->getFPS() );
-    Broodwar->drawTextScreen(200, 20, "Average FPS: %f", Broodwar->getAverageFPS() );
+    BWAPI::Broodwar->drawTextScreen(200, 0,  "FPS: %d",         BWAPI::Broodwar->getFPS() );
+    BWAPI::Broodwar->drawTextScreen(200, 20, "Average FPS: %f", BWAPI::Broodwar->getAverageFPS() );
 
     // Return if the game is a replay or is paused
-    if (Broodwar->isReplay() || Broodwar->isPaused() || !Broodwar->self()) {
+    if (BWAPI::Broodwar->isReplay() || BWAPI::Broodwar->isPaused() || !BWAPI::Broodwar->self()) {
         return;
     }
 
     // Prevent spamming by only running our onFrame once every number of latency frames.
     // Latency frames are the number of frames before commands are processed.
-    if (Broodwar->getFrameCount() % Broodwar->getLatencyFrames() != 0) {
+    if (BWAPI::Broodwar->getFrameCount() % BWAPI::Broodwar->getLatencyFrames() != 0) {
         return;
     }
 
     // Iterate through all the units that we own
-    for (auto& u : Broodwar->self()->getUnits())
+    for (auto& u : BWAPI::Broodwar->self()->getUnits())
     {
         // Ignore the unit if it no longer exists
         // Make sure to include this block when handling any Unit pointer!
@@ -113,7 +113,7 @@ void AresAIModule::onFrame()
                     if (!u->gather(u->getClosestUnit(BWAPI::Filter::IsMineralField || BWAPI::Filter::IsRefinery)))
                     {
                         // If the call fails, then print the last error message
-                        Broodwar << Broodwar->getLastError() << std::endl;
+                        BWAPI::Broodwar << BWAPI::Broodwar->getLastError() << std::endl;
                     }
 
                 } // closure: has no powerup
@@ -127,42 +127,42 @@ void AresAIModule::onFrame()
                 // If that fails, draw the error at the location so that you can visibly see what went wrong!
                 // However, drawing the error once will only appear for a single frame
                 // so create an event that keeps it on the screen for some frames
-                Position pos = u->getPosition();
-                Error lastErr = Broodwar->getLastError();
-                Broodwar->registerEvent([pos,lastErr](Game*){
-                        Broodwar->drawTextMap(pos, "%c%s", Text::White, lastErr.c_str());
+                BWAPI::Position pos = u->getPosition();
+                BWAPI::Error lastErr = BWAPI::Broodwar->getLastError();
+                BWAPI::Broodwar->registerEvent([pos,lastErr](BWAPI::Game*){
+                        BWAPI::Broodwar->drawTextMap(pos, "%c%s", BWAPI::Text::White, lastErr.c_str());
                     }, // action
                     nullptr, // condition
-                    Broodwar->getLatencyFrames());  // frames to run
+                    BWAPI::Broodwar->getLatencyFrames());  // frames to run
 
                 // Retrieve the supply provider type in the case that we have run out of supplies
-                UnitType supplyProviderType = u->getType().getRace().getSupplyProvider();
+                BWAPI::UnitType supplyProviderType = u->getType().getRace().getSupplyProvider();
                 static int lastChecked = 0;
 
                 // If we are supply blocked and haven't tried constructing more recently
-                if (lastErr == Errors::Insufficient_Supply and
-                    lastChecked + 400 < Broodwar->getFrameCount() and
-                    Broodwar->self()->incompleteUnitCount(supplyProviderType) == 0)
+				if (lastErr == BWAPI::Errors::Insufficient_Supply &&
+                    lastChecked + 400 < BWAPI::Broodwar->getFrameCount() &&
+                    BWAPI::Broodwar->self()->incompleteUnitCount(supplyProviderType) == 0)
                 {
-                    lastChecked = Broodwar->getFrameCount();
+                    lastChecked = BWAPI::Broodwar->getFrameCount();
 
                     // Retrieve a unit that is capable of constructing the supply needed
-                    Unit supplyBuilder = u->getClosestUnit(BWAPI::Filter::GetType == supplyProviderType.whatBuilds().first
-                                                           and (BWAPI::Filter::IsIdle or BWAPI::Filter::IsGatheringMinerals)
-                                                           and BWAPI::Filter::IsOwned);
+					BWAPI::Unit supplyBuilder = u->getClosestUnit(BWAPI::Filter::GetType == supplyProviderType.whatBuilds().first
+                                                                  && (BWAPI::Filter::IsIdle || BWAPI::Filter::IsGatheringMinerals)
+                                                                  && BWAPI::Filter::IsOwned);
                     // If a unit was found
                     if (supplyBuilder)
                     {
                         if (supplyProviderType.isBuilding())
                         {
-                            TilePosition targetBuildLocation = Broodwar->getBuildLocation(supplyProviderType, supplyBuilder->getTilePosition());
+							BWAPI::TilePosition targetBuildLocation = BWAPI::Broodwar->getBuildLocation(supplyProviderType, supplyBuilder->getTilePosition());
                             if (targetBuildLocation)
                             {
                                 // Register an event that draws the target build location
-                                Broodwar->registerEvent([targetBuildLocation,supplyProviderType](Game*) {
-                                        Broodwar->drawBoxMap( Position(targetBuildLocation),
-                                            Position(targetBuildLocation + supplyProviderType.tileSize()),
-                                            Colors::Blue);
+								BWAPI::Broodwar->registerEvent([targetBuildLocation, supplyProviderType](BWAPI::Game*) {
+                                        BWAPI::Broodwar->drawBoxMap( BWAPI::Position(targetBuildLocation),
+                                            BWAPI::Position(targetBuildLocation + supplyProviderType.tileSize()),
+											BWAPI::Colors::Blue);
                                     },
                                     nullptr,  // condition
                                     supplyProviderType.buildTime() + 100 );  // frames to run
@@ -186,7 +186,7 @@ void AresAIModule::onFrame()
 void AresAIModule::onSendText(std::string text)
 {
     // Send the text to the game if it is not being processed.
-    Broodwar->sendText("%s", text.c_str());
+    BWAPI::Broodwar->sendText("%s", text.c_str());
     // Make sure to use %s and pass the text as a parameter,
     // otherwise you may run into problems when you use the %(percent) character!
 }
@@ -194,31 +194,31 @@ void AresAIModule::onSendText(std::string text)
 void AresAIModule::onReceiveText(BWAPI::Player player, std::string text)
 {
     // Parse the received text
-    Broodwar << player->getName() << " said \"" << text << "\"" << std::endl;
+    BWAPI::Broodwar << player->getName() << " said \"" << text << "\"" << std::endl;
 }
 
 void AresAIModule::onPlayerLeft(BWAPI::Player player)
 {
     // Interact verbally with the other players in the game by
     // announcing that the other player has left.
-    Broodwar->sendText("Goodbye %s!", player->getName().c_str());
+    BWAPI::Broodwar->sendText("Goodbye %s!", player->getName().c_str());
 }
 
 void AresAIModule::onNukeDetect(BWAPI::Position target)
 {
-    // Check if the target is a valid position
+    // Check if the target is a valid BWAPI::Position
     if (target)
     {
         // if so, print the location of the nuclear strike target
-        Broodwar << "Nuclear Launch Detected at " << target << std::endl;
+        BWAPI::Broodwar << "Nuclear Launch Detected at " << target << std::endl;
     }
     else
     {
         // Otherwise, ask other players where the nuke is!
-        Broodwar->sendText("Where's the nuke?");
+        BWAPI::Broodwar->sendText("Where's the nuke?");
     }
 
-    // You can also retrieve all the nuclear missile targets using Broodwar->getNukeDots()!
+    // You can also retrieve all the nuclear missile targets using BWAPI::Broodwar->getNukeDots()!
 }
 
 void AresAIModule::onUnitDiscover(BWAPI::Unit unit)
@@ -239,15 +239,15 @@ void AresAIModule::onUnitHide(BWAPI::Unit unit)
 
 void AresAIModule::onUnitCreate(BWAPI::Unit unit)
 {
-    if (Broodwar->isReplay())
+    if (BWAPI::Broodwar->isReplay())
     {
         // If we are in a replay, then we will print out the build order of the structures
-        if (unit->getType().isBuilding() and !unit->getPlayer()->isNeutral())
+        if (unit->getType().isBuilding() && !unit->getPlayer()->isNeutral())
         {
-            int seconds = Broodwar->getFrameCount()/24;
+            int seconds = BWAPI::Broodwar->getFrameCount()/24;
             int minutes = seconds/60;
             seconds %= 60;
-            Broodwar->sendText("%.2d:%.2d: %s creates a %s", minutes, seconds, unit->getPlayer()->getName().c_str(), unit->getType().c_str());
+            BWAPI::Broodwar->sendText("%.2d:%.2d: %s creates a %s", minutes, seconds, unit->getPlayer()->getName().c_str(), unit->getType().c_str());
         }
     }
 }
@@ -258,15 +258,15 @@ void AresAIModule::onUnitDestroy(BWAPI::Unit unit)
 
 void AresAIModule::onUnitMorph(BWAPI::Unit unit)
 {
-    if (Broodwar->isReplay())
+    if (BWAPI::Broodwar->isReplay())
     {
         // if we are in a replay, then we will print out the build order of the structures
         if (unit->getType().isBuilding() && !unit->getPlayer()->isNeutral())
         {
-            int seconds = Broodwar->getFrameCount()/24;
+            int seconds = BWAPI::Broodwar->getFrameCount()/24;
             int minutes = seconds/60;
             seconds %= 60;
-            Broodwar->sendText("%.2d:%.2d: %s morphs a %s", minutes, seconds, unit->getPlayer()->getName().c_str(), unit->getType().c_str());
+            BWAPI::Broodwar->sendText("%.2d:%.2d: %s morphs a %s", minutes, seconds, unit->getPlayer()->getName().c_str(), unit->getType().c_str());
         }
     }
 }
