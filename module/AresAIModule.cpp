@@ -19,10 +19,21 @@
  */
 
 #include "AresAIModule.h"
+#include "AbstractEventListener.h"
 #include <iostream>
+
+#define NOTIFY_LISTENERS(func, ...) \
+    for (AbstractEventListener& listener : m_listeners) { \
+        listener.func(__VA_ARGS__); \
+    }
+
+namespace ares
+{
 
 void AresAIModule::onStart()
 {
+    NOTIFY_LISTENERS(onStart)
+
     // Hello World!
     BWAPI::Broodwar->sendText("Hello world from AresBWAPIBot !");
 
@@ -62,6 +73,8 @@ void AresAIModule::onStart()
 
 void AresAIModule::onEnd(bool isWinner)
 {
+    NOTIFY_LISTENERS(onEnd, isWinner)
+
     // Called when the game ends
     if (isWinner)
     {
@@ -76,6 +89,8 @@ void AresAIModule::onSaveGame(std::string gameName)
 
 void AresAIModule::onFrame()
 {
+    NOTIFY_LISTENERS(onFrame)
+
     // Display the game frame rate as text in the upper left area of the screen
     BWAPI::Broodwar->drawTextScreen(200, 0,  "FPS: %d",         BWAPI::Broodwar->getFPS() );
     BWAPI::Broodwar->drawTextScreen(200, 20, "Average FPS: %f", BWAPI::Broodwar->getAverageFPS() );
@@ -160,14 +175,14 @@ void AresAIModule::onFrame()
                 static int lastChecked = 0;
 
                 // If we are supply blocked and haven't tried constructing more recently
-				if (lastErr == BWAPI::Errors::Insufficient_Supply &&
+                if (lastErr == BWAPI::Errors::Insufficient_Supply &&
                     lastChecked + 400 < BWAPI::Broodwar->getFrameCount() &&
                     BWAPI::Broodwar->self()->incompleteUnitCount(supplyProviderType) == 0)
                 {
                     lastChecked = BWAPI::Broodwar->getFrameCount();
 
                     // Retrieve a unit that is capable of constructing the supply needed
-					BWAPI::Unit supplyBuilder = u->getClosestUnit(BWAPI::Filter::GetType == supplyProviderType.whatBuilds().first
+                    BWAPI::Unit supplyBuilder = u->getClosestUnit(BWAPI::Filter::GetType == supplyProviderType.whatBuilds().first
                                                                   && (BWAPI::Filter::IsIdle || BWAPI::Filter::IsGatheringMinerals)
                                                                   && BWAPI::Filter::IsOwned);
                     // If a unit was found
@@ -175,14 +190,14 @@ void AresAIModule::onFrame()
                     {
                         if (supplyProviderType.isBuilding())
                         {
-							BWAPI::TilePosition targetBuildLocation = BWAPI::Broodwar->getBuildLocation(supplyProviderType, supplyBuilder->getTilePosition());
+                            BWAPI::TilePosition targetBuildLocation = BWAPI::Broodwar->getBuildLocation(supplyProviderType, supplyBuilder->getTilePosition());
                             if (targetBuildLocation)
                             {
                                 // Register an event that draws the target build location
-								BWAPI::Broodwar->registerEvent([targetBuildLocation, supplyProviderType](BWAPI::Game*) {
+                                BWAPI::Broodwar->registerEvent([targetBuildLocation, supplyProviderType](BWAPI::Game*) {
                                         BWAPI::Broodwar->drawBoxMap( BWAPI::Position(targetBuildLocation),
                                             BWAPI::Position(targetBuildLocation + supplyProviderType.tileSize()),
-											BWAPI::Colors::Blue);
+                                            BWAPI::Colors::Blue);
                                     },
                                     nullptr,  // condition
                                     supplyProviderType.buildTime() + 100 );  // frames to run
@@ -241,22 +256,6 @@ void AresAIModule::onNukeDetect(BWAPI::Position target)
     // You can also retrieve all the nuclear missile targets using BWAPI::Broodwar->getNukeDots()!
 }
 
-void AresAIModule::onUnitDiscover(BWAPI::Unit unit)
-{
-}
-
-void AresAIModule::onUnitEvade(BWAPI::Unit unit)
-{
-}
-
-void AresAIModule::onUnitShow(BWAPI::Unit unit)
-{
-}
-
-void AresAIModule::onUnitHide(BWAPI::Unit unit)
-{
-}
-
 void AresAIModule::onUnitCreate(BWAPI::Unit unit)
 {
     if (BWAPI::Broodwar->isReplay())
@@ -270,10 +269,6 @@ void AresAIModule::onUnitCreate(BWAPI::Unit unit)
             BWAPI::Broodwar->sendText("%.2d:%.2d: %s creates a %s", minutes, seconds, unit->getPlayer()->getName().c_str(), unit->getType().c_str());
         }
     }
-}
-
-void AresAIModule::onUnitDestroy(BWAPI::Unit unit)
-{
 }
 
 void AresAIModule::onUnitMorph(BWAPI::Unit unit)
@@ -291,11 +286,17 @@ void AresAIModule::onUnitMorph(BWAPI::Unit unit)
     }
 }
 
-void AresAIModule::onUnitRenegade(BWAPI::Unit unit)
+void AresAIModule::addListener(AbstractEventListener& listener)
 {
+    m_listeners.emplace_back(listener);
 }
 
-void AresAIModule::onUnitComplete(BWAPI::Unit unit)
+void AresAIModule::removeListener(AbstractEventListener& listener)
 {
+    m_listeners.remove_if([&listener](std::reference_wrapper<AbstractEventListener> listenRef) -> bool {
+        return &listenRef.get() == &listener;
+    });
+}
+
 }
 
