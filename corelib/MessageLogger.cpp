@@ -22,19 +22,11 @@ MessageLogger::MessageLogger()
         std::cout << "MessageLogger::getHomePath get null string." << std::endl;
         return;
     }
+
+    m_logFile.open(homePath + "/AresBWAPIBot.log");
 #if defined(DEBUG) || defined(_DEBUG)
     m_coutFile.open(homePath + "/BroodWar.cout");
     m_cerrFile.open(homePath + "/BroodWar.cerr");
-#endif
-    m_logFile.open(homePath + "/AresBWAPIBot.log");
-}
-
-MessageLogger::~MessageLogger()
-{
-    closeIfOpen(m_logFile);
-#if defined(DEBUG) || defined(_DEBUG)
-    closeIfOpen(m_coutFile);
-    closeIfOpen(m_cerrFile);
 #endif
 }
 
@@ -55,71 +47,91 @@ std::string MessageLogger::getHomePath()
 #endif
 }
 
-
-void MessageLogger::write(std::ofstream& os, const char* msg)
-{
-    if(os.is_open())
-    {
-        os << msg << std::endl;
-    }
-}
-
-void MessageLogger::write(FILE_TYPE type, const char* msg)
-{
-    switch(type)
-    {
-        case LOG:
-            write(m_logFile, msg);
-            break;
 #if defined(DEBUG) || defined(_DEBUG)
-        case COUT:
-            write(m_coutFile, msg);
-            break;
-
-        case CERR:
-            write(m_cerrFile, msg);
-            break;
+CompositeStream& MessageLogger::debug()
+{
+    return MessageLogger::instance().debugStream();
+}
 #endif
-        default:
-            break;
-    }
+
+CompositeStream& MessageLogger::info()
+{
+    return MessageLogger::instance().infoStream();
 }
 
-void MessageLogger::closeIfOpen(std::ofstream& os)
+CompositeStream& MessageLogger::warning()
 {
-    if(os.is_open())
-        os.close();
+    return MessageLogger::instance().warningStream();
+}
+
+CompositeStream& MessageLogger::error()
+{
+    return MessageLogger::instance().errorStream();
+}
+
+#if defined(DEBUG) || defined(_DEBUG)
+CompositeStream& MessageLogger::debugStream()
+{
+    std::vector<std::streambuf*> compositeBuffers({m_logFile.rdbuf()});
+    static CompositeStream debugStream(compositeBuffers);
+    return debugStream;
+}
+#endif
+CompositeStream& MessageLogger::infoStream()
+{
+    std::vector<std::streambuf*> compositeBuffers({
+#if defined(DEBUG) || defined(_DEBUG)
+                                                       m_coutFile.rdbuf(),
+#endif
+                                                       m_logFile.rdbuf()
+                                                  });
+    static CompositeStream infoStream(compositeBuffers);
+    return infoStream;
+}
+
+CompositeStream& MessageLogger::warningStream()
+{
+    std::vector<std::streambuf*> compositeBuffers({
+#if defined(DEBUG) || defined(_DEBUG)
+                                                       m_cerrFile.rdbuf(),
+#endif
+                                                       m_logFile.rdbuf()
+                                                  });
+    static CompositeStream warningStream(compositeBuffers);
+    return warningStream;
+}
+
+CompositeStream& MessageLogger::errorStream()
+{
+    std::vector<std::streambuf*> compositeBuffers({
+#if defined(DEBUG) || defined(_DEBUG)
+                                                       m_cerrFile.rdbuf(),
+#endif
+                                                       m_logFile.rdbuf()
+                                                  });
+    static CompositeStream errorStream(compositeBuffers);
+    return errorStream;
 }
 
 #if defined(DEBUG) || defined(_DEBUG)
 void MessageLogger::debug(const char* msg)
 {
-    MessageLogger::instance().write(LOG, msg);
+    MessageLogger::debug() << msg;
 }
 #endif
 
 void MessageLogger::info(const char* msg)
 {
-    MessageLogger::instance().write(LOG, msg);
-#if defined(DEBUG) || defined(_DEBUG)
-    MessageLogger::instance().write(COUT, msg);
-#endif
+    MessageLogger::info() << msg;
 }
 
 void MessageLogger::warning(const char* msg)
 {
-    MessageLogger::instance().write(LOG, msg);
-#if defined(DEBUG) || defined(_DEBUG)
-    MessageLogger::instance().write(CERR, msg);
-#endif
+    MessageLogger::warning() << msg;
 }
 
 void MessageLogger::error(const char* msg)
 {
-    MessageLogger::instance().write(LOG, msg);
-#if defined(DEBUG) || defined(_DEBUG)
-    MessageLogger::instance().write(CERR, msg);
-#endif
+    MessageLogger::warning() << msg;
 }
-
 
