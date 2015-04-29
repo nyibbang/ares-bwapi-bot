@@ -27,7 +27,7 @@ set(${PROJECT_NAME}_PATCH_VERSION 0)
 
 # Default build type
 if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Release)
+    set(CMAKE_BUILD_TYPE Debug)
 endif()
 
 # Modules and packages
@@ -37,6 +37,37 @@ enable_testing()
 
 # Debug libraries should be postfixed with a 'd'
 set(CMAKE_DEBUG_POSTFIX "d")
+
+################################################################################
+# BWAPI library lookup if we are on MS Windows
+################################################################################
+if (WIN32)
+    set(_BWAPI_POSTFIX_RELEASE "")
+    set(_BWAPI_POSTFIX_DEBUG "d")
+    set(BWAPI_PATHS
+        "$ENV{ProgramFiles}"
+        "$ENV{ProgramFiles(x86)}"
+        "$ENV{ProgramW6432}"
+        "$ENV{BWAPI_DIR}"
+        "${BWAPI_DIR}"
+    )
+    foreach(_config_type RELEASE DEBUG)
+        find_library(BWAPI_LIBRARY_${_config_type}
+            BWAPI${_BWAPI_POSTFIX_${_config_type}}
+            PATHS ${BWAPI_PATHS}
+            PATH_SUFFIXES "BWAPI/lib" "lib"
+        )
+    endforeach()
+    unset(_BWAPI_POSTFIX_RELEASE)
+    unset(_BWAPI_POSTFIX_DEBUG)
+    set(BWAPI_LIBRARY "debug;${BWAPI_LIBRARY_DEBUG};optimized;${BWAPI_LIBRARY_RELEASE}")
+
+    find_path(BWAPI_INCLUDE_DIR
+        BWAPI.h
+        PATHS ${BWAPI_PATHS}
+        PATH_SUFFIXES "BWAPI/include"
+    )
+endif()
 
 ################################################################################
 # Subdirectories
