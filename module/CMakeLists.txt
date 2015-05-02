@@ -17,11 +17,10 @@
 # USA
 
 ################################################################################
-# Preconditions:
-#  - Compiling on MS Windows
+# Precondition on BWAPI
 ################################################################################
-if(NOT WIN32)
-    message(STATUS "System is not WIN32, AresModule library will not be built")
+if(NOT BWAPI_FOUND)
+    message(STATUS "BWAPI was not found, AresModule library cannot and will not be built")
     return()
 endif()
 
