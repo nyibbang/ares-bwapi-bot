@@ -1,11 +1,9 @@
 #include "traces.h"
 
-#ifdef ON_LINUX
-#   include <cstdlib>
-#else
-#   include <windows.h>
-#   include <shlobj.h>
-#endif
+#ifdef ON_WINDOWS
+
+#include <windows.h>
+#include <shlobj.h>
 
 
 namespace
@@ -13,7 +11,6 @@ namespace
 
 std::string homePath()
 {
-#ifndef ON_LINUX
     WCHAR wpath[MAX_PATH];
     if(SUCCEEDED(SHGetFolderPathW(0, CSIDL_PROFILE, 0, 0, wpath)))
     {
@@ -21,9 +18,6 @@ std::string homePath()
         return std::string(path.begin(), path.end());
     }
     return std::string();
-#else
-    return getenv("HOME");
-#endif
 }
 
 }
@@ -112,3 +106,6 @@ traces::Facade& traces::Facade::instance()
     static Facade instance;
     return instance;
 }
+
+
+#endif

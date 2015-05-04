@@ -1,15 +1,18 @@
 #pragma once
 
+#if !defined(__unix__) && !defined(__linux__) && !defined(__CYGWIN__)
+#   define ON_WINDOWS
+#endif
+
 #include <iostream>
+
+#ifdef ON_WINDOWS
+
 #include <fstream>
 #include <memory>
 #include <functional>
 #include <vector>
 #include <sstream>
-
-#if defined(__unix__) || defined(__linux__) || defined(__CYGWIN__)
-#   define ON_LINUX
-#endif
 
 namespace traces
 {
@@ -106,13 +109,18 @@ void traces::Facade::initializeAuxiliaryLogger(TArgs&&... args)
     instance().m_coutLogger.reset(new TAuxiliaryLogger(std::forward<TArgs>(args)...));
 }
 
-
 #ifdef DEBUG
-    #define ARES_DEBUG traces::Facade::debug
+    #define ARES_DEBUG   traces::Facade::debug
 #else
     #define ARES_DEBUG() if(false) std::cout
 #endif
-#define ARES_INFO traces::Facade::info
+#define ARES_INFO    traces::Facade::info
 #define ARES_WARNING traces::Facade::warning
-#define ARES_ERROR traces::Facade::error
+#define ARES_ERROR   traces::Facade::error
 
+#else // NOT ON WINDOWS
+    #define ARES_DEBUG   ARES_ERROR
+    #define ARES_INFO    ARES_ERROR
+    #define ARES_WARNING ARES_ERROR
+    #define ARES_ERROR() if(false) std::cout
+#endif
