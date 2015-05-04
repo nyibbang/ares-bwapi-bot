@@ -1,6 +1,6 @@
 #pragma once
 
-#if !defined(__unix__) && !defined(__linux__) && !defined(__CYGWIN__)
+#if defined(_WIN32) || defined(_WIN64) || defined(__GNUC__) || defined(__MINGW32__)
 #   define ON_WINDOWS
 #endif
 
