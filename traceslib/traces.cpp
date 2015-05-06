@@ -1,9 +1,9 @@
+
 #include "traces.h"
-
 #ifdef ON_WINDOWS
-
 #include <windows.h>
 #include <shlobj.h>
+#include <ctime>
 
 
 namespace
@@ -20,6 +20,20 @@ std::string homePath()
     return std::string();
 }
 
+std::string dateTime()
+{
+    char time[20];
+    time_t rawtime = std::time(nullptr);
+    strftime(time, 20, "%Y-%m-%d %X", localtime(&rawtime));
+    return time;
+}
+
+std::string formateMessage(std::string message, std::string location, std::string level)
+{
+    std::string formatedMessage = dateTime() + '|' + level + '|' + location + '|' + message;
+    return formatedMessage;
+}
+
 }
 
 
@@ -27,9 +41,17 @@ traces::StreamLogger::StreamLogger(std::ostream& os)
 : m_os(os)
 {}
 
+void traces::StreamLogger::layout(const char* file, int line, const char* level)
+{
+    std::ostringstream oss;
+    oss << line;
+    m_location = std::string(file) + ':' + oss.str();
+    m_level = level;
+}
+
 void traces::StreamLogger::log(const std::string& message)
 {
-    m_os << message << std::flush;
+    if(!message.empty()) m_os << formateMessage(message, m_location, m_level) << std::flush;
 }
 
 traces::CompositeLogger::CompositeLogger(std::unique_ptr<AbstractLogger>& coutLogger, std::ostream& os)
@@ -37,10 +59,23 @@ traces::CompositeLogger::CompositeLogger(std::unique_ptr<AbstractLogger>& coutLo
       , m_os(os)
 {}
 
+void traces::CompositeLogger::layout(const char* file, int line, const char* level)
+{
+    if (m_coutLogger) m_coutLogger->layout(file, line, level);
+    std::ostringstream oss;
+    oss << line;
+    m_location = std::string(file) + ':' + oss.str();
+    m_level = level;
+}
+
 void traces::CompositeLogger::log(const std::string& message)
 {
-    if (m_coutLogger) m_coutLogger->log(message);
-    m_os.write(message.c_str(), message.size());
+    if(!message.empty())
+    {
+        if (m_coutLogger) m_coutLogger->log(message);
+        std::string formatedMessage = formateMessage(message, m_location, m_level);
+        m_os.write(formatedMessage.c_str(), formatedMessage.size());
+    }
 }
 
 traces::Stream::Stream(AbstractLogger& logger)
@@ -49,6 +84,12 @@ traces::Stream::Stream(AbstractLogger& logger)
 
 traces::Stream::~Stream() {
     m_logger.log(m_buffer.str());
+}
+
+traces::Stream& traces::Stream::layout(const char* file, int line, const char* level)
+{
+    m_logger.layout(file, line, level);
+    return *this;
 }
 
 traces::Stream& traces::Stream::operator<<(stream_manipulator manip)
@@ -63,25 +104,25 @@ traces::Stream& traces::Stream::operator<<(stream_manipulator manip)
 }
 
 #ifdef DEBUG
-traces::Stream& traces::Facade::debug()
+traces::Stream& traces::Facade::debug(const char* file, int line)
 {
-    return instance().m_debugStream;
+    return instance().m_debugStream.layout(file, line, "DEBUG");
 }
 #endif
 
-traces::Stream& traces::Facade::info()
+traces::Stream& traces::Facade::info(const char* file, int line)
 {
-    return instance().m_infoStream;
+    return instance().m_infoStream.layout(file, line, "INFO");
 }
 
-traces::Stream& traces::Facade::warning()
+traces::Stream& traces::Facade::warning(const char* file, int line)
 {
-    return instance().m_warnStream;
+    return instance().m_warnStream.layout(file, line, "WARNING");
 }
 
-traces::Stream& traces::Facade::error()
+traces::Stream& traces::Facade::error(const char* file, int line)
 {
-    return instance().m_errorStream;
+    return instance().m_errorStream.layout(file, line, "ERROR");
 }
 
 void traces::Facade::resetAuxiliaryLogger()
