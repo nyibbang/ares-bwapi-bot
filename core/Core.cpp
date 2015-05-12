@@ -19,10 +19,12 @@
  */
 
 #include "Core.h"
+#include "trace/Trace.h"
 
 /* Empty file just to test the build system */
 int foo()
 {
+    ARES_WARNING() << "This function is most likely to do nothing" << std::endl;
     return 42;
 }
 

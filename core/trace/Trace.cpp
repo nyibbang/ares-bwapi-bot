@@ -19,9 +19,12 @@
  */
 
 #include "Trace.h"
-#ifdef ON_WINDOWS
+
+#if defined(_WIN32) || defined(_WIN64) || defined(__MINGW32__)
+#define ON_WINDOWS
 #include <windows.h>
 #include <shlobj.h>
+#endif
 #include <ctime>
 
 namespace
@@ -29,13 +32,15 @@ namespace
 
 std::string homePath()
 {
+#ifdef ON_WINDOWS
     WCHAR wpath[MAX_PATH];
     if(SUCCEEDED(SHGetFolderPathW(0, CSIDL_PROFILE, 0, 0, wpath)))
     {
         std::wstring path(wpath);
         return std::string(path.begin(), path.end());
     }
-    return std::string();
+#endif
+    return std::getenv("HOME");
 }
 
 std::string dateTime()
@@ -46,71 +51,91 @@ std::string dateTime()
     return time;
 }
 
-std::string formateMessage(std::string message, std::string location, std::string level)
+std::string layoutMessage(const std::string& message, const std::string& location, const std::string& level)
 {
-    std::string formatedMessage = dateTime() + '|' + level + '|' + location + '|' + message;
-    return formatedMessage;
+    return dateTime() + " | " + level + " | " + location + " | " + message;
 }
 
+class OstreamLogger final : public traces::AbstractLogger
+{
+    public:
+        OstreamLogger(std::ostream& os)
+            : m_os(os)
+        {}
+
+        void layout(const std::string& file, int line, const std::string& level)
+        {
+            m_location = std::string(file) + ':' + std::to_string(line);
+            m_level = level;
+        }
+
+    private:
+        void log(const std::string& message) override
+        {
+            if (!message.empty()) {
+                m_os << layoutMessage(message, m_location, m_level) << std::flush;
+            }
+        }
+
+        std::ostream& m_os;
+        std::string m_location;
+        std::string m_level;
+};
+
+class CompositeLogger final : public traces::AbstractLogger
+{
+    public:
+        CompositeLogger(std::unique_ptr<AbstractLogger>& auxiliaryLogger, std::ostream& os)
+            : m_auxiliaryLogger(auxiliaryLogger)
+            , m_os(os)
+        {}
+
+        void layout(const std::string& file, int line, const std::string& level)
+        {
+            if (m_auxiliaryLogger) m_auxiliaryLogger->layout(file, line, level);
+            std::ostringstream oss;
+            oss << line;
+            m_location = std::string(file) + ':' + oss.str();
+            m_level = level;
+        }
+
+    private:
+        void log(const std::string& message) override
+        {
+            if (message.empty()) return;
+
+            if (m_auxiliaryLogger) m_auxiliaryLogger->log(message);
+            std::string laidoutMessage = layoutMessage(message, m_location, m_level);
+            m_os.write(laidoutMessage.c_str(), laidoutMessage.size());
+        }
+
+        std::unique_ptr<AbstractLogger>& m_auxiliaryLogger;
+        std::ostream& m_os;
+        std::string m_location;
+        std::string m_level;
+};
+
 }
 
+namespace traces
+{
 
-traces::StreamLogger::StreamLogger(std::ostream& os)
-: m_os(os)
+Stream::Stream(AbstractLogger& logger)
+    : m_logger(logger)
 {}
 
-void traces::StreamLogger::layout(const char* file, int line, const char* level)
+Stream::~Stream()
 {
-    std::ostringstream oss;
-    oss << line;
-    m_location = std::string(file) + ':' + oss.str();
-    m_level = level;
-}
-
-void traces::StreamLogger::log(const std::string& message)
-{
-    if(!message.empty()) m_os << formateMessage(message, m_location, m_level) << std::flush;
-}
-
-traces::CompositeLogger::CompositeLogger(std::unique_ptr<AbstractLogger>& coutLogger, std::ostream& os)
-    : m_coutLogger(coutLogger)
-      , m_os(os)
-{}
-
-void traces::CompositeLogger::layout(const char* file, int line, const char* level)
-{
-    if (m_coutLogger) m_coutLogger->layout(file, line, level);
-    std::ostringstream oss;
-    oss << line;
-    m_location = std::string(file) + ':' + oss.str();
-    m_level = level;
-}
-
-void traces::CompositeLogger::log(const std::string& message)
-{
-    if(!message.empty())
-    {
-        if (m_coutLogger) m_coutLogger->log(message);
-        std::string formatedMessage = formateMessage(message, m_location, m_level);
-        m_os.write(formatedMessage.c_str(), formatedMessage.size());
-    }
-}
-
-traces::Stream::Stream(AbstractLogger& logger)
-: m_logger(logger)
-{}
-
-traces::Stream::~Stream() {
     m_logger.log(m_buffer.str());
 }
 
-traces::Stream& traces::Stream::layout(const char* file, int line, const char* level)
+Stream& Stream::layout(const std::string& file, int line, const std::string& level)
 {
     m_logger.layout(file, line, level);
     return *this;
 }
 
-traces::Stream& traces::Stream::operator<<(stream_manipulator manip)
+Stream& Stream::operator<<(stream_manipulator manip)
 {
     m_buffer << manip;
     if ((manip == &std::endl<char, std::char_traits<char>> or manip == &std::ends<char, std::char_traits<char>>)
@@ -121,50 +146,50 @@ traces::Stream& traces::Stream::operator<<(stream_manipulator manip)
     return *this;
 }
 
-#ifdef DEBUG
-traces::Stream& traces::Facade::debug(const char* file, int line)
+#ifdef ARES_DEBUG_BUILD
+Stream& Facade::debug(const std::string& file, int line)
 {
     return instance().m_debugStream.layout(file, line, "DEBUG");
 }
 #endif
 
-traces::Stream& traces::Facade::info(const char* file, int line)
+Stream& Facade::info(const std::string& file, int line)
 {
     return instance().m_infoStream.layout(file, line, "INFO");
 }
 
-traces::Stream& traces::Facade::warning(const char* file, int line)
+Stream& Facade::warning(const std::string& file, int line)
 {
     return instance().m_warnStream.layout(file, line, "WARNING");
 }
 
-traces::Stream& traces::Facade::error(const char* file, int line)
+Stream& Facade::error(const std::string& file, int line)
 {
     return instance().m_errorStream.layout(file, line, "ERROR");
 }
 
-void traces::Facade::resetAuxiliaryLogger()
+void Facade::resetAuxiliaryLogger()
 {
-    instance().m_coutLogger.reset();
+    instance().m_auxiliaryLogger.reset();
 }
 
-traces::Facade::Facade()
-    : m_fileStream(homePath() + "/tracesBWAPIBot.log")
-    , m_noInfoLogger(m_fileStream)
-    , m_infoLogger(m_coutLogger, m_fileStream)
-#ifdef DEBUG
-    , m_debugStream(m_noInfoLogger)
+Facade::Facade()
+    : m_fileStream(homePath() + "/AresBWAPIBot.log")
+    , m_fileLogger(new OstreamLogger(m_fileStream))
+    , m_compositeLogger(new CompositeLogger(m_auxiliaryLogger, m_fileStream))
+#ifdef ARES_DEBUG_BUILD
+    , m_debugStream(*m_fileLogger)
 #endif
-    , m_infoStream(m_noInfoLogger)
-    , m_warnStream(m_infoLogger)
-    , m_errorStream(m_infoLogger)
+    , m_infoStream(*m_fileLogger)
+    , m_warnStream(*m_compositeLogger)
+    , m_errorStream(*m_compositeLogger)
 {}
 
-traces::Facade& traces::Facade::instance()
+Facade& Facade::instance()
 {
     static Facade instance;
     return instance;
 }
 
-#endif
+}
 
