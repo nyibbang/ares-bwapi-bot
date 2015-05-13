@@ -31,45 +31,73 @@
 namespace traces
 {
 
+class BufferStreamFactory;
+
+struct LogContext
+{
+    std::string level;
+    std::string file;
+    int line;
+};
+
+class AbstractLayout
+{
+    public:
+        virtual ~AbstractLayout() {}
+        virtual std::string format(const traces::LogContext& context, const std::string& message) = 0;
+};
+
 class AbstractLogger
 {
     public:
         virtual ~AbstractLogger() {}
-        virtual void log(const std::string& message) = 0;
-        virtual void layout(const std::string& file, int line, const std::string& level) = 0;
+        virtual void log(const LogContext& context, const std::string& message) = 0;
 };
 
-class Stream final
+class BufferStream final
 {
     public:
-        typedef std::ostream& (&stream_manipulator)(std::ostream&);
+        using stream_manipulator = std::ostream&(&)(std::ostream&);
+        using pointer = std::shared_ptr<BufferStream>;
 
-        Stream(AbstractLogger& logger);
-        ~Stream();
-        Stream& layout(const std::string& file, int line, const std::string& level);
+        BufferStream(AbstractLogger& logger, LogContext&& m_context);
+        ~BufferStream();
 
-        template<class T> Stream& operator<<(T&& t);
-        Stream& operator<<(stream_manipulator manip);
+        template<class T> friend BufferStream::pointer operator<<(BufferStream::pointer bfs, T&& t);
+        friend BufferStream::pointer operator<<(BufferStream::pointer bfs, stream_manipulator manip);
 
     private:
         AbstractLogger& m_logger;
+        LogContext m_context;
         std::ostringstream m_buffer;
 };
+
+template<class T> BufferStream::pointer operator<<(BufferStream::pointer bfs, T&& t)
+{
+    if (not bfs) return bfs;
+    bfs->m_buffer << std::forward<T>(t);
+    return bfs;
+}
+
+BufferStream::pointer operator<<(BufferStream::pointer bfs, BufferStream::stream_manipulator manip);
 
 class Facade final
 {
     public:
 #ifdef ARES_DEBUG_BUILD
-        static Stream& debug(const std::string& file, int line);
+        static BufferStream::pointer debug(const std::string& file, int line);
 #endif
-        static Stream& info(const std::string& file, int line);
-        static Stream& warning(const std::string& file, int line);
-        static Stream& error(const std::string& file, int line);
+        static BufferStream::pointer info(const std::string& file, int line);
+        static BufferStream::pointer warning(const std::string& file, int line);
+        static BufferStream::pointer error(const std::string& file, int line);
 
         static void resetAuxiliaryLogger();
 
         template<class TAuxiliaryLogger, class... TArgs>
-        static void initializeAuxiliaryLogger(TArgs&&... args);
+        static void initializeAuxiliaryLogger(TArgs&&... args)
+        {
+            instance().m_auxiliaryLogger.reset(new TAuxiliaryLogger(std::forward<TArgs>(args)...));
+        }
 
     private:
         Facade();
@@ -78,33 +106,22 @@ class Facade final
         std::ofstream m_fileStream;
         std::unique_ptr<AbstractLogger> m_auxiliaryLogger;
         std::unique_ptr<AbstractLogger> m_fileLogger;
-        std::unique_ptr<AbstractLogger> m_compositeLogger;
-#ifdef ARES_DEBUG_BUILD
-        Stream m_debugStream;
-#endif
-        Stream m_infoStream;
-        Stream m_warnStream;
-        Stream m_errorStream;
+        std::unique_ptr<AbstractLayout> m_fileLayout;
+        std::unique_ptr<AbstractLogger> m_layoutFileLogger;
+        std::unique_ptr<AbstractLayout> m_auxiliaryLayout;
+        std::unique_ptr<AbstractLogger> m_conditionalAuxiliaryLogger;
+        std::unique_ptr<AbstractLogger> m_layoutAuxiliaryLogger;
+        std::unique_ptr<AbstractLogger> m_layoutCompositeLogger;
+        std::unique_ptr<BufferStreamFactory> m_fileBSF;
+        std::unique_ptr<BufferStreamFactory> m_compositeBSF;
 };
 
 }
 
-template<class T> traces::Stream& traces::Stream::operator<<(T&& t)
-{
-    m_buffer << std::forward<T>(t);
-    return *this;
-}
-
-template<class TAuxiliaryLogger, class... TArgs>
-void traces::Facade::initializeAuxiliaryLogger(TArgs&&... args)
-{
-    instance().m_auxiliaryLogger.reset(new TAuxiliaryLogger(std::forward<TArgs>(args)...));
-}
-
 #ifdef ARES_DEBUG_BUILD
-    #define ARES_DEBUG() traces::Facade::debug(__FILE__, __LINE__)
+#define ARES_DEBUG()   traces::Facade::debug(__FILE__, __LINE__)
 #else
-    #define ARES_DEBUG() if(false) std::cout
+#define ARES_DEBUG()   if(false) std::cout
 #endif
 #define ARES_INFO()    traces::Facade::info(__FILE__, __LINE__)
 #define ARES_WARNING() traces::Facade::warning(__FILE__, __LINE__)

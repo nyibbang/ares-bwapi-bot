@@ -51,68 +51,96 @@ std::string dateTime()
     return time;
 }
 
-std::string layoutMessage(const std::string& message, const std::string& location, const std::string& level)
+class CompleteLayout final : public traces::AbstractLayout
 {
-    return dateTime() + " | " + level + " | " + location + " | " + message;
-}
+    public:
+        std::string format(const traces::LogContext& context, const std::string& message) override
+        {
+            return dateTime() + " | " + context.level + " | "
+                + context.file + ":" + std::to_string(context.line) + " | " + message;
+        }
+};
+
+class BasicLayout final : public traces::AbstractLayout
+{
+    public:
+        std::string format(const traces::LogContext& context, const std::string& message) override
+        {
+            return context.level + " : " + message;
+        }
+};
 
 class OstreamLogger final : public traces::AbstractLogger
 {
     public:
         OstreamLogger(std::ostream& os)
-            : m_os(os)
+            : m_ostream(os)
         {}
 
-        void layout(const std::string& file, int line, const std::string& level)
-        {
-            m_location = std::string(file) + ':' + std::to_string(line);
-            m_level = level;
-        }
-
     private:
-        void log(const std::string& message) override
+        void log(const traces::LogContext&, const std::string& message) override
         {
             if (!message.empty()) {
-                m_os << layoutMessage(message, m_location, m_level) << std::flush;
+                m_ostream.write(message.c_str(), message.size());
             }
         }
 
-        std::ostream& m_os;
-        std::string m_location;
-        std::string m_level;
+        std::ostream& m_ostream;
 };
 
 class CompositeLogger final : public traces::AbstractLogger
 {
     public:
-        CompositeLogger(std::unique_ptr<AbstractLogger>& auxiliaryLogger, std::ostream& os)
-            : m_auxiliaryLogger(auxiliaryLogger)
-            , m_os(os)
+        CompositeLogger(AbstractLogger& primaryLogger, AbstractLogger& secondaryLogger)
+            : m_primaryLogger(primaryLogger)
+            , m_secondaryLogger(secondaryLogger)
         {}
 
-        void layout(const std::string& file, int line, const std::string& level)
+    private:
+        void log(const traces::LogContext& context, const std::string& message) override
         {
-            if (m_auxiliaryLogger) m_auxiliaryLogger->layout(file, line, level);
-            std::ostringstream oss;
-            oss << line;
-            m_location = std::string(file) + ':' + oss.str();
-            m_level = level;
+            m_primaryLogger.log(context, message);
+            m_secondaryLogger.log(context, message);
+        }
+
+        AbstractLogger& m_primaryLogger;
+        AbstractLogger& m_secondaryLogger;
+};
+
+class ConditionalAuxiliaryLogger final : public traces::AbstractLogger
+{
+    public:
+        ConditionalAuxiliaryLogger(std::unique_ptr<AbstractLogger>& auxiliaryLogger)
+            : m_auxiliaryLogger(auxiliaryLogger)
+        {}
+
+        void log(const traces::LogContext& context, const std::string& message) override
+        {
+            if (m_auxiliaryLogger) {
+                m_auxiliaryLogger->log(context, message);
+            }
         }
 
     private:
-        void log(const std::string& message) override
-        {
-            if (message.empty()) return;
+        std::unique_ptr<AbstractLogger>& m_auxiliaryLogger;
+};
 
-            if (m_auxiliaryLogger) m_auxiliaryLogger->log(message);
-            std::string laidoutMessage = layoutMessage(message, m_location, m_level);
-            m_os.write(laidoutMessage.c_str(), laidoutMessage.size());
+class LayoutLogger final : public traces::AbstractLogger
+{
+    public:
+        LayoutLogger(AbstractLogger& logger, traces::AbstractLayout& layout)
+            : m_logger(logger)
+            , m_layout(layout)
+        {}
+
+        void log(const traces::LogContext& context, const std::string& message) override
+        {
+            m_logger.log(context, m_layout.format(context, message));
         }
 
-        std::unique_ptr<AbstractLogger>& m_auxiliaryLogger;
-        std::ostream& m_os;
-        std::string m_location;
-        std::string m_level;
+    private:
+        AbstractLogger& m_logger;
+        traces::AbstractLayout& m_layout;
 };
 
 }
@@ -120,52 +148,59 @@ class CompositeLogger final : public traces::AbstractLogger
 namespace traces
 {
 
-Stream::Stream(AbstractLogger& logger)
+class BufferStreamFactory final
+{
+    public:
+        BufferStreamFactory(AbstractLogger& logger)
+            : m_logger(logger)
+        {}
+
+        BufferStream::pointer createBufferStream(const std::string& level, const std::string& file, int line)
+        {
+            return std::make_shared<BufferStream>(m_logger, LogContext({level, file, line}));
+        }
+
+    private:
+        AbstractLogger& m_logger;
+};
+
+BufferStream::BufferStream(AbstractLogger& logger, LogContext&& context)
     : m_logger(logger)
+    , m_context(std::move(context))
 {}
 
-Stream::~Stream()
+BufferStream::~BufferStream()
 {
-    m_logger.log(m_buffer.str());
+    m_logger.log(m_context, m_buffer.str());
 }
 
-Stream& Stream::layout(const std::string& file, int line, const std::string& level)
+BufferStream::pointer operator<<(BufferStream::pointer bfs, BufferStream::stream_manipulator manip)
 {
-    m_logger.layout(file, line, level);
-    return *this;
-}
-
-Stream& Stream::operator<<(stream_manipulator manip)
-{
-    m_buffer << manip;
-    if ((manip == &std::endl<char, std::char_traits<char>> or manip == &std::ends<char, std::char_traits<char>>)
-            and not m_buffer.str().empty()) {
-        m_logger.log(m_buffer.str());
-        m_buffer.str(std::string());
-    }
-    return *this;
+    if (not bfs) return bfs;
+    bfs->m_buffer << manip;
+    return bfs;
 }
 
 #ifdef ARES_DEBUG_BUILD
-Stream& Facade::debug(const std::string& file, int line)
+BufferStream::pointer Facade::debug(const std::string& file, int line)
 {
-    return instance().m_debugStream.layout(file, line, "DEBUG");
+    return instance().m_fileBSF->createBufferStream("DEBUG", file, line);
 }
 #endif
 
-Stream& Facade::info(const std::string& file, int line)
+BufferStream::pointer Facade::info(const std::string& file, int line)
 {
-    return instance().m_infoStream.layout(file, line, "INFO");
+    return instance().m_fileBSF->createBufferStream("INFO", file, line);
 }
 
-Stream& Facade::warning(const std::string& file, int line)
+BufferStream::pointer Facade::warning(const std::string& file, int line)
 {
-    return instance().m_warnStream.layout(file, line, "WARNING");
+    return instance().m_compositeBSF->createBufferStream("WARNING", file, line);
 }
 
-Stream& Facade::error(const std::string& file, int line)
+BufferStream::pointer Facade::error(const std::string& file, int line)
 {
-    return instance().m_errorStream.layout(file, line, "ERROR");
+    return instance().m_compositeBSF->createBufferStream("ERROR", file, line);
 }
 
 void Facade::resetAuxiliaryLogger()
@@ -176,13 +211,14 @@ void Facade::resetAuxiliaryLogger()
 Facade::Facade()
     : m_fileStream(homePath() + "/AresBWAPIBot.log")
     , m_fileLogger(new OstreamLogger(m_fileStream))
-    , m_compositeLogger(new CompositeLogger(m_auxiliaryLogger, m_fileStream))
-#ifdef ARES_DEBUG_BUILD
-    , m_debugStream(*m_fileLogger)
-#endif
-    , m_infoStream(*m_fileLogger)
-    , m_warnStream(*m_compositeLogger)
-    , m_errorStream(*m_compositeLogger)
+    , m_fileLayout(new CompleteLayout())
+    , m_layoutFileLogger(new LayoutLogger(*m_fileLogger, *m_fileLayout))
+    , m_auxiliaryLayout(new BasicLayout())
+    , m_conditionalAuxiliaryLogger(new ConditionalAuxiliaryLogger(m_auxiliaryLogger))
+    , m_layoutAuxiliaryLogger(new LayoutLogger(*m_conditionalAuxiliaryLogger, *m_auxiliaryLayout))
+    , m_layoutCompositeLogger(new CompositeLogger(*m_layoutFileLogger, *m_layoutAuxiliaryLogger))
+    , m_fileBSF(new BufferStreamFactory(*m_layoutFileLogger))
+    , m_compositeBSF(new BufferStreamFactory(*m_layoutCompositeLogger))
 {}
 
 Facade& Facade::instance()

@@ -25,6 +25,7 @@
 int foo()
 {
     ARES_WARNING() << "This function is most likely to do nothing" << std::endl;
+    ARES_INFO() << "This function will still return 42" << std::endl;
     return 42;
 }
 
