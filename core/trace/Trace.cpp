@@ -21,18 +21,35 @@
 #include "Trace.h"
 
 #if defined(_WIN32) || defined(_WIN64) || defined(__MINGW32__)
-#define ON_WINDOWS
+#define ON_WINDOWS 1
 #include <windows.h>
 #include <shlobj.h>
 #endif
+#include <chrono>
 #include <ctime>
+
+namespace threading
+{
+
+std::tm localtime(const std::time_t& time) noexcept
+{
+    std::tm result;
+#if ON_WINDOWS
+    localtime_s(&result, &time);
+#else
+    localtime_r(&time, &result);
+#endif
+    return result;
+}
+
+}
 
 namespace
 {
 
-std::string homePath()
+std::string homePath() noexcept
 {
-#ifdef ON_WINDOWS
+#if ON_WINDOWS
     WCHAR wpath[MAX_PATH];
     if(SUCCEEDED(SHGetFolderPathW(0, CSIDL_PROFILE, 0, 0, wpath)))
     {
@@ -43,42 +60,43 @@ std::string homePath()
     return std::getenv("HOME");
 }
 
-std::string dateTime()
+std::string dateTime() noexcept
 {
-    char time[20];
-    time_t rawtime = std::time(nullptr);
-    strftime(time, 20, "%Y-%m-%d %X", localtime(&rawtime));
-    return time;
+    using sc = std::chrono::system_clock;
+    auto nowTm = threading::localtime(sc::to_time_t(sc::now()));
+    char timeStr[20];
+    std::strftime(timeStr, sizeof(timeStr), "%Y-%m-%d %X", &nowTm);
+    return timeStr;
 }
 
-class CompleteLayout final : public traces::AbstractLayout
+class CompleteLayout final : public trace::AbstractLayout
 {
     public:
-        std::string format(const traces::LogContext& context, const std::string& message) override
+        std::string format(const trace::LogContext& context, const std::string& message) const override
         {
             return dateTime() + " | " + context.level + " | "
                 + context.file + ":" + std::to_string(context.line) + " | " + message;
         }
 };
 
-class BasicLayout final : public traces::AbstractLayout
+class BasicLayout final : public trace::AbstractLayout
 {
     public:
-        std::string format(const traces::LogContext& context, const std::string& message) override
+        std::string format(const trace::LogContext& context, const std::string& message) const override
         {
             return context.level + " : " + message;
         }
 };
 
-class OstreamLogger final : public traces::AbstractLogger
+class OstreamLogger final : public trace::AbstractLogger
 {
     public:
-        OstreamLogger(std::ostream& os)
+        OstreamLogger(std::ostream& os) noexcept
             : m_ostream(os)
         {}
 
     private:
-        void log(const traces::LogContext&, const std::string& message) override
+        void log(const trace::LogContext&, const std::string& message) override
         {
             if (!message.empty()) {
                 m_ostream.write(message.c_str(), message.size());
@@ -88,33 +106,33 @@ class OstreamLogger final : public traces::AbstractLogger
         std::ostream& m_ostream;
 };
 
-class CompositeLogger final : public traces::AbstractLogger
+class CompositeLogger final : public trace::AbstractLogger
 {
     public:
-        CompositeLogger(AbstractLogger& primaryLogger, AbstractLogger& secondaryLogger)
+        CompositeLogger(trace::AbstractLogger& primaryLogger, trace::AbstractLogger& secondaryLogger) noexcept
             : m_primaryLogger(primaryLogger)
             , m_secondaryLogger(secondaryLogger)
         {}
 
     private:
-        void log(const traces::LogContext& context, const std::string& message) override
+        void log(const trace::LogContext& context, const std::string& message) override
         {
             m_primaryLogger.log(context, message);
             m_secondaryLogger.log(context, message);
         }
 
-        AbstractLogger& m_primaryLogger;
-        AbstractLogger& m_secondaryLogger;
+        trace::AbstractLogger& m_primaryLogger;
+        trace::AbstractLogger& m_secondaryLogger;
 };
 
-class ConditionalAuxiliaryLogger final : public traces::AbstractLogger
+class ConditionalAuxiliaryLogger final : public trace::AbstractLogger
 {
     public:
-        ConditionalAuxiliaryLogger(std::unique_ptr<AbstractLogger>& auxiliaryLogger)
+        ConditionalAuxiliaryLogger(std::unique_ptr<trace::AbstractLogger>& auxiliaryLogger) noexcept
             : m_auxiliaryLogger(auxiliaryLogger)
         {}
 
-        void log(const traces::LogContext& context, const std::string& message) override
+        void log(const trace::LogContext& context, const std::string& message) override
         {
             if (m_auxiliaryLogger) {
                 m_auxiliaryLogger->log(context, message);
@@ -122,59 +140,64 @@ class ConditionalAuxiliaryLogger final : public traces::AbstractLogger
         }
 
     private:
-        std::unique_ptr<AbstractLogger>& m_auxiliaryLogger;
+        std::unique_ptr<trace::AbstractLogger>& m_auxiliaryLogger;
 };
 
-class LayoutLogger final : public traces::AbstractLogger
+class LayoutLogger final : public trace::AbstractLogger
 {
     public:
-        LayoutLogger(AbstractLogger& logger, traces::AbstractLayout& layout)
+        LayoutLogger(trace::AbstractLogger& logger, trace::AbstractLayout& layout) noexcept
             : m_logger(logger)
             , m_layout(layout)
         {}
 
-        void log(const traces::LogContext& context, const std::string& message) override
+        void log(const trace::LogContext& context, const std::string& message) override
         {
             m_logger.log(context, m_layout.format(context, message));
         }
 
     private:
-        AbstractLogger& m_logger;
-        traces::AbstractLayout& m_layout;
+        trace::AbstractLogger& m_logger;
+        trace::AbstractLayout& m_layout;
 };
 
 }
 
-namespace traces
+namespace trace
 {
 
 class BufferStreamFactory final
 {
     public:
-        BufferStreamFactory(AbstractLogger& logger)
+        BufferStreamFactory(AbstractLogger& logger) noexcept
             : m_logger(logger)
         {}
 
-        BufferStream::pointer createBufferStream(const std::string& level, const std::string& file, int line)
+        BufferStream::pointer create(LogContext&& context) const noexcept
         {
-            return std::make_shared<BufferStream>(m_logger, LogContext({level, file, line}));
+            return std::make_shared<BufferStream>(m_logger, std::move(context));
         }
 
     private:
         AbstractLogger& m_logger;
 };
 
-BufferStream::BufferStream(AbstractLogger& logger, LogContext&& context)
+BufferStream::BufferStream(AbstractLogger& logger, LogContext&& context) noexcept
     : m_logger(logger)
     , m_context(std::move(context))
 {}
 
 BufferStream::~BufferStream()
 {
-    m_logger.log(m_context, m_buffer.str());
+    try {
+        m_logger.log(m_context, m_buffer.str());
+    }
+    catch (const std::exception& ex) {
+        // Maybe warn the user of the error in some way, to do later
+    }
 }
 
-BufferStream::pointer operator<<(BufferStream::pointer bfs, BufferStream::stream_manipulator manip)
+BufferStream::pointer operator<<(BufferStream::pointer bfs, BufferStream::stream_manipulator manip) noexcept
 {
     if (not bfs) return bfs;
     bfs->m_buffer << manip;
@@ -182,34 +205,34 @@ BufferStream::pointer operator<<(BufferStream::pointer bfs, BufferStream::stream
 }
 
 #ifdef ARES_DEBUG_BUILD
-BufferStream::pointer Facade::debug(const std::string& file, int line)
+BufferStream::pointer Facade::debug(const std::string& file, int line) noexcept
 {
-    return instance().m_fileBSF->createBufferStream("DEBUG", file, line);
+    return instance().m_fileBSF->create({"DEBUG", file, line});
 }
 #endif
 
-BufferStream::pointer Facade::info(const std::string& file, int line)
+BufferStream::pointer Facade::info(const std::string& file, int line) noexcept
 {
-    return instance().m_fileBSF->createBufferStream("INFO", file, line);
+    return instance().m_fileBSF->create({"INFO", file, line});
 }
 
-BufferStream::pointer Facade::warning(const std::string& file, int line)
+BufferStream::pointer Facade::warning(const std::string& file, int line) noexcept
 {
-    return instance().m_compositeBSF->createBufferStream("WARNING", file, line);
+    return instance().m_compositeBSF->create({"WARNING", file, line});
 }
 
-BufferStream::pointer Facade::error(const std::string& file, int line)
+BufferStream::pointer Facade::error(const std::string& file, int line) noexcept
 {
-    return instance().m_compositeBSF->createBufferStream("ERROR", file, line);
+    return instance().m_compositeBSF->create({"ERROR", file, line});
 }
 
-void Facade::resetAuxiliaryLogger()
+void Facade::resetAuxiliaryLogger() noexcept
 {
     instance().m_auxiliaryLogger.reset();
 }
 
-Facade::Facade()
-    : m_fileStream(homePath() + "/AresBWAPIBot.log")
+Facade::Facade() noexcept
+    : m_fileStream(homePath() + "/AresBWAPI.log")
     , m_fileLogger(new OstreamLogger(m_fileStream))
     , m_fileLayout(new CompleteLayout())
     , m_layoutFileLogger(new LayoutLogger(*m_fileLogger, *m_fileLayout))
@@ -219,9 +242,11 @@ Facade::Facade()
     , m_layoutCompositeLogger(new CompositeLogger(*m_layoutFileLogger, *m_layoutAuxiliaryLogger))
     , m_fileBSF(new BufferStreamFactory(*m_layoutFileLogger))
     , m_compositeBSF(new BufferStreamFactory(*m_layoutCompositeLogger))
-{}
+{
+    m_fileStream.exceptions(std::ios_base::failbit);
+}
 
-Facade& Facade::instance()
+Facade& Facade::instance() noexcept
 {
     static Facade instance;
     return instance;

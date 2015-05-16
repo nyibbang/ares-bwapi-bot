@@ -22,13 +22,13 @@
 
 #include <iostream>
 
-#ifndef ARES_TESTS
+#if !(ARES_TESTS)
 
 #include <memory>
 #include <fstream>
 #include <sstream>
 
-namespace traces
+namespace trace
 {
 
 class BufferStreamFactory;
@@ -44,7 +44,7 @@ class AbstractLayout
 {
     public:
         virtual ~AbstractLayout() {}
-        virtual std::string format(const traces::LogContext& context, const std::string& message) = 0;
+        virtual std::string format(const LogContext& context, const std::string& message) const = 0;
 };
 
 class AbstractLogger
@@ -60,11 +60,11 @@ class BufferStream final
         using stream_manipulator = std::ostream&(&)(std::ostream&);
         using pointer = std::shared_ptr<BufferStream>;
 
-        BufferStream(AbstractLogger& logger, LogContext&& m_context);
+        BufferStream(AbstractLogger& logger, LogContext&& m_context) noexcept;
         ~BufferStream();
 
-        template<class T> friend BufferStream::pointer operator<<(BufferStream::pointer bfs, T&& t);
-        friend BufferStream::pointer operator<<(BufferStream::pointer bfs, stream_manipulator manip);
+        template<class T> friend BufferStream::pointer operator<<(BufferStream::pointer bfs, T&& t) noexcept;
+        friend BufferStream::pointer operator<<(BufferStream::pointer bfs, stream_manipulator manip) noexcept;
 
     private:
         AbstractLogger& m_logger;
@@ -72,36 +72,41 @@ class BufferStream final
         std::ostringstream m_buffer;
 };
 
-template<class T> BufferStream::pointer operator<<(BufferStream::pointer bfs, T&& t)
+template<class T> BufferStream::pointer operator<<(BufferStream::pointer bfs, T&& t) noexcept
 {
     if (not bfs) return bfs;
     bfs->m_buffer << std::forward<T>(t);
     return bfs;
 }
 
-BufferStream::pointer operator<<(BufferStream::pointer bfs, BufferStream::stream_manipulator manip);
+BufferStream::pointer operator<<(BufferStream::pointer bfs, BufferStream::stream_manipulator manip) noexcept;
 
 class Facade final
 {
     public:
-#ifdef ARES_DEBUG_BUILD
-        static BufferStream::pointer debug(const std::string& file, int line);
+#if ARES_DEBUG_BUILD
+        static BufferStream::pointer debug(const std::string& file, int line) noexcept;
 #endif
-        static BufferStream::pointer info(const std::string& file, int line);
-        static BufferStream::pointer warning(const std::string& file, int line);
-        static BufferStream::pointer error(const std::string& file, int line);
+        static BufferStream::pointer info(const std::string& file, int line) noexcept;
+        static BufferStream::pointer warning(const std::string& file, int line) noexcept;
+        static BufferStream::pointer error(const std::string& file, int line) noexcept;
 
-        static void resetAuxiliaryLogger();
+        static void resetAuxiliaryLogger() noexcept;
 
         template<class TAuxiliaryLogger, class... TArgs>
-        static void initializeAuxiliaryLogger(TArgs&&... args)
+        static void initializeAuxiliaryLogger(TArgs&&... args) noexcept
         {
-            instance().m_auxiliaryLogger.reset(new TAuxiliaryLogger(std::forward<TArgs>(args)...));
+            try {
+                instance().m_auxiliaryLogger.reset(new TAuxiliaryLogger(std::forward<TArgs>(args)...));
+            }
+            catch (const std::exception& ex) {
+                // AuxiliaryLogger constructor threw an exception, nothing we can do, just pass. Maybe treat later
+            }
         }
 
     private:
-        Facade();
-        static Facade& instance();
+        Facade() noexcept;
+        static Facade& instance() noexcept;
 
         std::ofstream m_fileStream;
         std::unique_ptr<AbstractLogger> m_auxiliaryLogger;
@@ -118,14 +123,14 @@ class Facade final
 
 }
 
-#ifdef ARES_DEBUG_BUILD
-#define ARES_DEBUG()   traces::Facade::debug(__FILE__, __LINE__)
+#if ARES_DEBUG_BUILD
+#define ARES_DEBUG()   trace::Facade::debug(__FILE__, __LINE__)
 #else
 #define ARES_DEBUG()   if(false) std::cout
 #endif
-#define ARES_INFO()    traces::Facade::info(__FILE__, __LINE__)
-#define ARES_WARNING() traces::Facade::warning(__FILE__, __LINE__)
-#define ARES_ERROR()   traces::Facade::error(__FILE__, __LINE__)
+#define ARES_INFO()    trace::Facade::info(__FILE__, __LINE__)
+#define ARES_WARNING() trace::Facade::warning(__FILE__, __LINE__)
+#define ARES_ERROR()   trace::Facade::error(__FILE__, __LINE__)
 
 #else // ARES_TESTS is defined
     #define ARES_NOOP_STREAM if (false) std::cout
