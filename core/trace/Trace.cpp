@@ -26,6 +26,7 @@
 #include <shlobj.h>
 #endif
 #include <chrono>
+#include <mutex>
 #include <ctime>
 
 namespace threading
@@ -99,7 +100,9 @@ class OstreamLogger final : public trace::AbstractLogger
         void log(const trace::LogContext&, const std::string& message) override
         {
             if (!message.empty()) {
-                m_ostream.write(message.c_str(), message.size());
+                static std::mutex osMutex;
+                std::lock_guard<std::mutex> osGuard(osMutex);
+                m_ostream << message;
             }
         }
 
