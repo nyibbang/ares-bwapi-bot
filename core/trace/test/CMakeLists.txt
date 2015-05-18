@@ -17,17 +17,34 @@
 # USA
 
 ################################################################################
-# Trace library
+# Threads library
 ################################################################################
-add_library(AresTrace STATIC
-    Trace.h Trace.cpp
+set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+find_package(Threads REQUIRED)
+
+################################################################################
+# CoreTest executable
+################################################################################
+add_executable(AresTraceTest
+    TestMain.cpp
 )
 
-target_include_directories(AresTrace
+if(CMAKE_USE_PTHREADS_INIT)
+    get_target_property(_old_flags AresTraceTest LINK_FLAGS)
+    set(_new_flags "-Wl,--no-as-needed")
+    if(_old_flags)
+        set(_new_flags "${_old_flags} ${_new_flags}")
+    endif()
+    set_target_properties(AresTraceTest PROPERTIES LINK_FLAGS "${_new_flags}")
+    unset(_new_flags)
+endif()
+target_include_directories(AresTraceTest
     PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${gmock_SOURCE_DIR}/include
+        ${gtest_SOURCE_DIR}/include
 )
-
-# Tests
-add_subdirectory(test)
+target_link_libraries(AresTraceTest
+    AresTrace
+    ${CMAKE_THREAD_LIBS_INIT}
+)
 

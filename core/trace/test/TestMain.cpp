@@ -18,14 +18,40 @@
  * USA
  */
 
-#include "Core.h"
-#include "trace/Trace.h"
+#include "Trace.h"
+#include <ctime>
+#include <future>
+#include <list>
 
-/* Empty file just to test the build system */
-int foo()
+namespace
 {
-    ARES_WARNING() << "This function is most likely to do nothing";
-    ARES_INFO() << "This function will still return 42";
-    return 42;
+
+decltype(ARES_INFO()) stream(int type)
+{
+    if (type == 0) return ARES_INFO();
+    if (type == 1) return ARES_WARNING();
+    return ARES_ERROR();
 }
+
+void startTracing()
+{
+    auto&& threadId = std::this_thread::get_id();
+    for (int i = 1; i <= 100; ++i)
+    {
+        const auto randResult = std::rand() % 3;
+        stream(randResult) << "test message n°" << i << " from thread " << threadId;
+    }
+}
+}
+
+int main(int argc, char** argv)
+{
+    std::srand(std::time(nullptr));
+    std::list<std::future<void>> futureList;
+    for (int i = 0; i < 10; ++i) {
+        futureList.push_back(std::move(std::async(std::launch::async, startTracing)));
+    }
+    return 0;
+}
+
 
