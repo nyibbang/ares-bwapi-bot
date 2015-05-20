@@ -20,23 +20,31 @@
 
 #pragma once
 
-#include <iostream>
+#include <string>
 
-#if !(ARES_TESTS)
-    #include "Facade.h"
-    #if ARES_DEBUG_BUILD
-        #define ARES_DEBUG()   trace::Facade::debug(__FILE__, __LINE__)
-    #else
-        #define ARES_DEBUG()   if(false) std::cout
-    #endif
-    #define ARES_INFO()    trace::Facade::info(__FILE__, __LINE__)
-    #define ARES_WARNING() trace::Facade::warning(__FILE__, __LINE__)
-    #define ARES_ERROR()   trace::Facade::error(__FILE__, __LINE__)
-#else // ARES_TESTS is defined
-    #define ARES_NOOP_STREAM if (false) std::cout
-    #define ARES_DEBUG()     ARES_NOOP_STREAM
-    #define ARES_INFO()      ARES_NOOP_STREAM
-    #define ARES_WARNING()   ARES_NOOP_STREAM
-    #define ARES_ERROR()     ARES_NOOP_STREAM
-#endif
+namespace trace
+{
+
+class LogContext;
+
+class AbstractLayout
+{
+    public:
+        virtual ~AbstractLayout() {}
+        virtual std::string format(const LogContext& context, const std::string& message) const = 0;
+};
+
+class CompleteLayout final : public AbstractLayout
+{
+    public:
+        std::string format(const LogContext& context, const std::string& message) const override;
+};
+
+class BasicLayout final : public AbstractLayout
+{
+    public:
+        std::string format(const LogContext& context, const std::string& message) const override;
+};
+
+}
 

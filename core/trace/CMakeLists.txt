@@ -20,7 +20,11 @@
 # Trace library
 ################################################################################
 add_library(AresTrace STATIC
-    Trace.h Trace.cpp
+    Trace.h LogContext.h
+    Facade.h Facade.cpp
+    BufferStream.h BufferStream.cpp
+    Layout.h Layout.cpp
+    Logger.h Logger.cpp
 )
 
 target_include_directories(AresTrace
