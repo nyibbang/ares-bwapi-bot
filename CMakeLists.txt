@@ -22,7 +22,7 @@
 project(AresBWAPIBot)
 cmake_minimum_required(VERSION 2.8.11)
 set(${PROJECT_NAME}_MAJOR_VERSION 0)
-set(${PROJECT_NAME}_MINOR_VERSION 1)
+set(${PROJECT_NAME}_MINOR_VERSION 2)
 set(${PROJECT_NAME}_PATCH_VERSION 0)
 
 # Default build type
