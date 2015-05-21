@@ -19,12 +19,23 @@
  */
 
 #include "Trace.h"
+#include <boost/regex.hpp>
+#include <boost/format.hpp>
+#include <gtest/gtest.h>
 #include <ctime>
 #include <future>
 #include <list>
 
 namespace
 {
+
+const std::string SEPARATOR_REGEX = " \\| ";
+const std::string DATE_REGEX = "\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}";
+const std::string LEVEL_REGEX = "(DEBUG|INFO|WARNING|ERROR)";
+const std::string LOCATION_REGEX = "[^:]+:\\d+";
+const std::string TEST_MESSAGE_TEMPLATE = "test message n°%1% from thread %2%";
+const unsigned int THREADS_COUNT = 10;
+const unsigned int TRACES_PER_THREAD = 100;
 
 decltype(ARES_INFO()) stream(int type)
 {
@@ -33,25 +44,62 @@ decltype(ARES_INFO()) stream(int type)
     return ARES_ERROR();
 }
 
-void startTracing()
+void loopTrace()
 {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(0, 2);
+
     auto&& threadId = std::this_thread::get_id();
-    for (int i = 1; i <= 100; ++i)
+    for (int i = 1; i <= TRACES_PER_THREAD; ++i)
     {
-        const auto randResult = std::rand() % 3;
-        stream(randResult) << "test message n°" << i << " from thread " << threadId;
+        stream(dis(gen)) << boost::format(TEST_MESSAGE_TEMPLATE) % i % threadId;
     }
 }
+
+bool lineMatchesLayout(const std::string& line)
+{
+    static const std::string layoutRegexStr(
+            DATE_REGEX + SEPARATOR_REGEX
+            + LEVEL_REGEX + SEPARATOR_REGEX
+            + LOCATION_REGEX + SEPARATOR_REGEX
+            + boost::str(boost::format(TEST_MESSAGE_TEMPLATE) % "\\d+" % "\\d+"));
+    static const boost::regex layoutRegex(layoutRegexStr);
+    return boost::regex_match(line, layoutRegex);
+}
+
+}
+
+TEST(CoreTraceTest, TraceAreThreadSafe)
+{
+    // Start threads that will trace
+    std::list<std::future<void>> futureList;
+    for (int i = 0; i < THREADS_COUNT; ++i) {
+        futureList.push_back(std::move(std::async(std::launch::async, loopTrace)));
+    }
+    futureList.clear();
+
+    // Open the log output
+    std::ifstream logFile;
+    logFile.open(std::getenv("HOME") + std::string("/AresBWAPI.log"));
+
+    // Read everyline and check if they match the layout
+    std::string line;
+    unsigned int count = 0;
+    while (std::getline(logFile, line))
+    {
+        EXPECT_PRED1(lineMatchesLayout, line);
+        ++count;
+    }
+
+    // Check that we have the right count of lines
+    EXPECT_EQ(THREADS_COUNT * TRACES_PER_THREAD, count);
 }
 
 int main(int argc, char** argv)
 {
-    std::srand(std::time(nullptr));
-    std::list<std::future<void>> futureList;
-    for (int i = 0; i < 10; ++i) {
-        futureList.push_back(std::move(std::async(std::launch::async, startTracing)));
-    }
-    return 0;
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
 
 

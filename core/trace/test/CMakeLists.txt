@@ -19,32 +19,43 @@
 ################################################################################
 # Threads library
 ################################################################################
-set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+set(CMAKE_THREAD_PREFER_PTHREAD true)
 find_package(Threads REQUIRED)
+
+################################################################################
+# Boost regex library
+################################################################################
+set(Boost_USE_STATIC_LIBS   true)
+set(Boost_USE_MULTITHREADED true)
+find_package(Boost COMPONENTS regex REQUIRED)
 
 ################################################################################
 # CoreTest executable
 ################################################################################
-add_executable(AresTraceTest
+add_executable(AresCoreTraceTest
     TestMain.cpp
 )
+add_test(NAME AresCoreTraceTest COMMAND AresCoreTraceTest)
 
 if(CMAKE_USE_PTHREADS_INIT)
-    get_target_property(_old_flags AresTraceTest LINK_FLAGS)
+    get_target_property(_old_flags AresCoreTraceTest LINK_FLAGS)
     set(_new_flags "-Wl,--no-as-needed")
     if(_old_flags)
         set(_new_flags "${_old_flags} ${_new_flags}")
     endif()
-    set_target_properties(AresTraceTest PROPERTIES LINK_FLAGS "${_new_flags}")
+    set_target_properties(AresCoreTraceTest PROPERTIES LINK_FLAGS "${_new_flags}")
     unset(_new_flags)
 endif()
-target_include_directories(AresTraceTest
+target_include_directories(AresCoreTraceTest
     PUBLIC
         ${gmock_SOURCE_DIR}/include
         ${gtest_SOURCE_DIR}/include
+        ${Boost_INCLUDE_DIRS}
 )
-target_link_libraries(AresTraceTest
-    AresTrace
+target_link_libraries(AresCoreTraceTest
+    AresCoreTrace
+    gmock_main
     ${CMAKE_THREAD_LIBS_INIT}
+    ${Boost_REGEX_LIBRARY}
 )
 

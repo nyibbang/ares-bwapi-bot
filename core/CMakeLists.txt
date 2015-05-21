@@ -17,11 +17,6 @@
 # USA
 
 ################################################################################
-# Subdirectories
-################################################################################
-add_subdirectory(trace)
-
-################################################################################
 # Core library
 ################################################################################
 add_library(AresCore STATIC
@@ -31,8 +26,11 @@ target_include_directories(AresCore
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
-target_link_libraries(AresCore AresTrace)
+target_link_libraries(AresCore AresCoreTrace)
 
-# Tests
+################################################################################
+# Subdirectories
+################################################################################
+add_subdirectory(trace)
 add_subdirectory(test)
 

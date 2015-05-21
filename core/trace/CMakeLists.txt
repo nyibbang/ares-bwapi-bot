@@ -19,7 +19,7 @@
 ################################################################################
 # Trace library
 ################################################################################
-add_library(AresTrace STATIC
+add_library(AresCoreTrace STATIC
     Trace.h LogContext.h
     Facade.h Facade.cpp
     BufferStream.h BufferStream.cpp
@@ -27,11 +27,13 @@ add_library(AresTrace STATIC
     Logger.h Logger.cpp
 )
 
-target_include_directories(AresTrace
+target_include_directories(AresCoreTrace
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-# Tests
+################################################################################
+# Subdirectories
+################################################################################
 add_subdirectory(test)
 

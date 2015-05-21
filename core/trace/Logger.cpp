@@ -35,7 +35,7 @@ void OstreamLogger::log(const LogContext&, const std::string& message)
     {
         static std::mutex osMutex;
         std::lock_guard<std::mutex> osGuard(osMutex);
-        m_ostream << message;
+        m_ostream << message << std::flush;
     }
 }
 
