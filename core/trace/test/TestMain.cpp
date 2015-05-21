@@ -19,9 +19,10 @@
  */
 
 #include "Trace.h"
-#include <boost/regex.hpp>
+#include "Logger.h"
 #include <boost/format.hpp>
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 #include <ctime>
 #include <future>
 #include <list>
@@ -29,13 +30,22 @@
 namespace
 {
 
+const unsigned int THREADS_COUNT = 20;
+const unsigned int TRACES_PER_THREAD = 1000;
+const unsigned int INFO_THREADS_COUNT = THREADS_COUNT / 3;
+
 const std::string SEPARATOR_REGEX = " \\| ";
-const std::string DATE_REGEX = "\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}";
+const std::string DATE_REGEX = "[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}";
 const std::string LEVEL_REGEX = "(DEBUG|INFO|WARNING|ERROR)";
-const std::string LOCATION_REGEX = "[^:]+:\\d+";
+const std::string AUXILIARY_LEVEL_REGEX = "(WARNING|ERROR)";
+const std::string LOCATION_REGEX = "[^:]+:[0-9]+";
 const std::string TEST_MESSAGE_TEMPLATE = "test message n°%1% from thread %2%";
-const unsigned int THREADS_COUNT = 10;
-const unsigned int TRACES_PER_THREAD = 100;
+const std::string TEST_MESSAGE_REGEX = boost::str(boost::format(TEST_MESSAGE_TEMPLATE) % "[0-9]+" % "[0-9]+");
+const std::string completeLayoutRegex(DATE_REGEX + SEPARATOR_REGEX
+                                      + LEVEL_REGEX + SEPARATOR_REGEX
+                                      + LOCATION_REGEX + SEPARATOR_REGEX
+                                      + TEST_MESSAGE_REGEX + "\n?");
+const std::string basicLayoutRegex(LEVEL_REGEX + " : " + TEST_MESSAGE_REGEX + "\n?");
 
 decltype(ARES_INFO()) stream(int type)
 {
@@ -44,38 +54,63 @@ decltype(ARES_INFO()) stream(int type)
     return ARES_ERROR();
 }
 
-void loopTrace()
+void loopTrace(int type)
 {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(0, 2);
-
     auto&& threadId = std::this_thread::get_id();
     for (int i = 1; i <= TRACES_PER_THREAD; ++i)
     {
-        stream(dis(gen)) << boost::format(TEST_MESSAGE_TEMPLATE) % i % threadId;
+        stream(type) << boost::format(TEST_MESSAGE_TEMPLATE) % i % threadId;
     }
 }
 
-bool lineMatchesLayout(const std::string& line)
+class MockLogger : public trace::AbstractLogger
 {
-    static const std::string layoutRegexStr(
-            DATE_REGEX + SEPARATOR_REGEX
-            + LEVEL_REGEX + SEPARATOR_REGEX
-            + LOCATION_REGEX + SEPARATOR_REGEX
-            + boost::str(boost::format(TEST_MESSAGE_TEMPLATE) % "\\d+" % "\\d+"));
-    static const boost::regex layoutRegex(layoutRegexStr);
-    return boost::regex_match(line, layoutRegex);
-}
+    public:
+        MOCK_METHOD2(log, void(const trace::LogContext&, const std::string&));
+};
+
+class EncapsulatedLogger : public trace::AbstractLogger
+{
+    public:
+        EncapsulatedLogger(trace::AbstractLogger& logger)
+            : m_logger(logger)
+        {}
+
+        void log(const trace::LogContext& context, const std::string& message) override {
+            m_logger.log(context, message);
+        }
+
+    private:
+        trace::AbstractLogger& m_logger;
+};
 
 }
 
-TEST(CoreTraceTest, TraceAreThreadSafe)
+TEST(CoreTraceTest, TracesLayoutAuxiliaryLoggerAndThreadSafe)
 {
+    // Set the auxiliary logger to a mock object and expect calls on it (info traces are not logged into auxiliary)
+    MockLogger mockLogger;
+    trace::Facade::initializeAuxiliaryLogger<EncapsulatedLogger>(mockLogger);
+#if GTEST_USES_POSIX_RE
+    auto auxiliaryMessageMatcher = ::testing::MatchesRegex(basicLayoutRegex);
+#else
+    auto auxiliaryMessageMatcher = ::testing::_;
+#endif
+    EXPECT_CALL(mockLogger, log(::testing::_, auxiliaryMessageMatcher))
+        .Times((THREADS_COUNT - INFO_THREADS_COUNT) * TRACES_PER_THREAD);
+
     // Start threads that will trace
     std::list<std::future<void>> futureList;
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(1, 2);
     for (int i = 0; i < THREADS_COUNT; ++i) {
-        futureList.push_back(std::move(std::async(std::launch::async, loopTrace)));
+        int type = 0;
+        // The first INFO_THREADS_COUNT threads will log only info traces, the rest will choose between warning and error
+        if (i >= INFO_THREADS_COUNT) {
+            type = dis(gen);
+        }
+        futureList.push_back(std::move(std::async(std::launch::async, loopTrace, type)));
     }
     futureList.clear();
 
@@ -83,12 +118,14 @@ TEST(CoreTraceTest, TraceAreThreadSafe)
     std::ifstream logFile;
     logFile.open(std::getenv("HOME") + std::string("/AresBWAPI.log"));
 
-    // Read everyline and check if they match the layout
+    // Read each line and check if they match the layout
     std::string line;
     unsigned int count = 0;
     while (std::getline(logFile, line))
     {
-        EXPECT_PRED1(lineMatchesLayout, line);
+#if GTEST_USES_POSIX_RE
+        ASSERT_THAT(line, ::testing::MatchesRegex(completeLayoutRegex));
+#endif
         ++count;
     }
 
