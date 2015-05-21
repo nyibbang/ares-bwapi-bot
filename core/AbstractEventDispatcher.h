@@ -18,28 +18,21 @@
  * USA
  */
 
-#include "AresAIModule.h"
-#include <BWAPI.h>
+#pragma once
 
-extern "C" __declspec(dllexport) void gameInit(BWAPI::Game* game)
+namespace ares
 {
-    BWAPI::BroodwarPtr = game;
-}
+class AbstractEventListener;
 
-BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
+class AbstractEventDispatcher
 {
-    switch (ul_reason_for_call)
-    {
-        case DLL_PROCESS_ATTACH:
-            break;
-        case DLL_PROCESS_DETACH:
-            break;
-    }
-    return TRUE;
-}
+    public:
+        AbstractEventDispatcher() {}
+        virtual ~AbstractEventDispatcher() {}
 
-extern "C" __declspec(dllexport) BWAPI::AIModule* newAIModule()
-{
-    return new ares::AresAIModule();
+        virtual void addListener(AbstractEventListener& listener) = 0;
+        virtual void removeListener(AbstractEventListener& listener) = 0;
+};
+
 }
 

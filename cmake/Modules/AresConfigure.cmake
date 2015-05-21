@@ -16,25 +16,27 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 # USA
 
-################################################################################
-# Precondition on BWAPI
-################################################################################
-if(NOT BWAPI_FOUND)
-    message(STATUS "BWAPI was not found, AresModule library cannot and will not be built")
-    return()
+set(CONFIG_MAJOR_VERSION ${${PROJECT_NAME}_MAJOR_VERSION})
+set(CONFIG_MINOR_VERSION ${${PROJECT_NAME}_MINOR_VERSION})
+set(CONFIG_PATCH_VERSION ${${PROJECT_NAME}_PATCH_VERSION})
+
+set(CONFIG_DEBUG 0)
+if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
+    set(CONFIG_DEBUG 1)
 endif()
 
-################################################################################
-# Module library
-################################################################################
-add_library(AresModule SHARED
-    AresAIModule.h AresAIModule.cpp
-    dll.cpp
-)
-target_include_directories(AresModule
-    PUBLIC ${BWAPI_INCLUDE_DIR}
-)
-target_link_libraries(AresModule
-    AresCore ${BWAPI_LIBRARY}
-)
+set(CONFIG_MSWINDOWS 0)
+if (WIN32)
+    set(CONFIG_MSWINDOWS 1)
+endif()
+
+message(STATUS "Creating 'config.h' from configuration settings")
+configure_file(config.h.in config.h @ONLY)
+include_directories(${PROJECT_BINARY_DIR})
+
+unset(CONFIG_MAJOR_VERSION)
+unset(CONFIG_MINOR_VERSION)
+unset(CONFIG_PATCH_VERSION)
+unset(CONFIG_DEBUG)
+unset(CONFIG_MSWINDOWS)
 

@@ -20,6 +20,8 @@
 # Core library
 ################################################################################
 add_library(AresCore STATIC
+    AbstractEventListener.h
+    AbstractEventDispatcher.h
     Core.h Core.cpp
 )
 target_include_directories(AresCore

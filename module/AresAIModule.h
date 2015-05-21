@@ -20,27 +20,35 @@
 
 #pragma once
 
+#include "AbstractEventDispatcher.h"
+#include "AbstractEventListener.h"
 #include <BWAPI.h>
+#include <list>
 
-class AresAIModule : public BWAPI::AIModule
+namespace ares
+{
+
+class AresAIModule final : public BWAPI::AIModule
+                         , public AbstractEventDispatcher
 {
     public:
-        virtual void onStart();
-        virtual void onEnd(bool isWinner);
-        virtual void onSaveGame(std::string gameName);
-        virtual void onFrame();
-        virtual void onSendText(std::string text);
-        virtual void onReceiveText(BWAPI::Player player, std::string text);
-        virtual void onPlayerLeft(BWAPI::Player player);
-        virtual void onNukeDetect(BWAPI::Position target);
-        virtual void onUnitDiscover(BWAPI::Unit unit);
-        virtual void onUnitEvade(BWAPI::Unit unit);
-        virtual void onUnitShow(BWAPI::Unit unit);
-        virtual void onUnitHide(BWAPI::Unit unit);
-        virtual void onUnitCreate(BWAPI::Unit unit);
-        virtual void onUnitDestroy(BWAPI::Unit unit);
-        virtual void onUnitMorph(BWAPI::Unit unit);
-        virtual void onUnitRenegade(BWAPI::Unit unit);
-        virtual void onUnitComplete(BWAPI::Unit unit);
+        void onStart();
+        void onEnd(bool isWinner);
+        void onSaveGame(std::string gameName);
+        void onFrame();
+        void onSendText(std::string text);
+        void onReceiveText(BWAPI::Player player, std::string text);
+        void onPlayerLeft(BWAPI::Player player);
+        void onNukeDetect(BWAPI::Position target);
+        void onUnitCreate(BWAPI::Unit unit);
+        void onUnitMorph(BWAPI::Unit unit);
+
+        void addListener(AbstractEventListener& listener) override;
+        void removeListener(AbstractEventListener& listener) override;
+
+    private:
+        std::list<std::reference_wrapper<AbstractEventListener>> m_listeners;
 };
+
+}
 

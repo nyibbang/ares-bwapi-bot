@@ -18,28 +18,25 @@
  * USA
  */
 
-#include "AresAIModule.h"
-#include <BWAPI.h>
+#pragma once
 
-extern "C" __declspec(dllexport) void gameInit(BWAPI::Game* game)
+namespace ares
 {
-    BWAPI::BroodwarPtr = game;
-}
 
-BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
+class AbstractEventListener
 {
-    switch (ul_reason_for_call)
-    {
-        case DLL_PROCESS_ATTACH:
-            break;
-        case DLL_PROCESS_DETACH:
-            break;
-    }
-    return TRUE;
-}
+    public:
+        AbstractEventListener() {}
+        virtual ~AbstractEventListener() = 0; // virtual pure to make the class abstract
 
-extern "C" __declspec(dllexport) BWAPI::AIModule* newAIModule()
-{
-    return new ares::AresAIModule();
+        /* All these methods are implemented empty, so that concrete
+           subclasses can just implement the ones they need */
+        virtual void onStart() {}
+        virtual void onEnd(bool /*isWinner*/) {}
+        virtual void onFrame() {}
+};
+
+inline AbstractEventListener::~AbstractEventListener() {}
+
 }
 

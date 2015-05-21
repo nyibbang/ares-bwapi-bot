@@ -22,12 +22,12 @@
 project(AresBWAPIBot)
 cmake_minimum_required(VERSION 2.8.11)
 set(${PROJECT_NAME}_MAJOR_VERSION 0)
-set(${PROJECT_NAME}_MINOR_VERSION 0)
+set(${PROJECT_NAME}_MINOR_VERSION 1)
 set(${PROJECT_NAME}_PATCH_VERSION 0)
 
 # Default build type
 if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Release)
+    set(CMAKE_BUILD_TYPE Debug)
 endif()
 
 # Modules and packages
@@ -39,9 +39,19 @@ enable_testing()
 set(CMAKE_DEBUG_POSTFIX "d")
 
 ################################################################################
+# BWAPI library lookup
+################################################################################
+find_package(BWAPI)
+
+################################################################################
 # Subdirectories
 ################################################################################
 add_subdirectory(third_party)
 add_subdirectory(core)
 add_subdirectory(module)
+
+################################################################################
+# Configuration
+################################################################################
+include(AresConfigure)
 
