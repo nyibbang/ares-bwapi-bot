@@ -25,6 +25,10 @@ add_executable(AresCoreTest
 )
 add_test(NAME AresCoreTest COMMAND AresCoreTest)
 
+target_compile_definitions(AresCoreTest
+    PUBLIC
+        ARES_DISABLE_TRACE
+)
 target_include_directories(AresCoreTest
     PUBLIC
         ${gmock_SOURCE_DIR}/include

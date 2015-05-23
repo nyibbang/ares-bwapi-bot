@@ -19,6 +19,7 @@
  */
 
 #include "Layout.h"
+#include "config.h"
 #include "LogContext.h"
 #include <chrono>
 #include <ctime>
@@ -29,7 +30,7 @@ namespace threading
 std::tm localtime(const std::time_t& time) noexcept
 {
     std::tm result;
-#if ON_WINDOWS
+#ifdef ARES_MSWINDOWS
     localtime_s(&result, &time);
 #else
     localtime_r(&time, &result);

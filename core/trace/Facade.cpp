@@ -19,10 +19,10 @@
  */
 
 #include "Facade.h"
+#include "config.h"
 #include "Layout.h"
 #include "Logger.h"
-#if defined(_WIN32) || defined(_WIN64) || defined(__MINGW32__)
-#define ON_WINDOWS 1
+#ifdef ARES_MSWINDOWS
 #include <windows.h>
 #include <shlobj.h>
 #endif
@@ -32,7 +32,7 @@ namespace
 
 std::string homePath() noexcept
 {
-#if ON_WINDOWS
+#if ARES_MSWINDOWS
     WCHAR wpath[MAX_PATH];
     if(SUCCEEDED(SHGetFolderPathW(0, CSIDL_PROFILE, 0, 0, wpath)))
     {

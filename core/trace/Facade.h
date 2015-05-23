@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "config.h"
 #include "BufferStream.h"
 #include <memory>
 #include <fstream>
@@ -33,7 +34,7 @@ class AbstractLogger;
 class Facade final
 {
     public:
-#if ARES_DEBUG_BUILD
+#ifdef ARES_DEBUG_BUILD
         static BufferStream::pointer debug(const std::string& file, int line) noexcept;
 #endif
         static BufferStream::pointer info(const std::string& file, int line) noexcept;

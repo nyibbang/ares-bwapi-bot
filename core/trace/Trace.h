@@ -20,11 +20,18 @@
 
 #pragma once
 
+#include "config.h"
 #include <iostream>
 
-#if !(ARES_TESTS)
+#ifdef ARES_DISABLE_TRACE
+    #define ARES_NOOP_STREAM if (false) std::cout
+    #define ARES_DEBUG()     ARES_NOOP_STREAM
+    #define ARES_INFO()      ARES_NOOP_STREAM
+    #define ARES_WARNING()   ARES_NOOP_STREAM
+    #define ARES_ERROR()     ARES_NOOP_STREAM
+#else
     #include "Facade.h"
-    #if ARES_DEBUG_BUILD
+    #ifdef ARES_DEBUG_BUILD
         #define ARES_DEBUG()   trace::Facade::debug(__FILE__, __LINE__)
     #else
         #define ARES_DEBUG()   if(false) std::cout
@@ -32,11 +39,5 @@
     #define ARES_INFO()    trace::Facade::info(__FILE__, __LINE__)
     #define ARES_WARNING() trace::Facade::warning(__FILE__, __LINE__)
     #define ARES_ERROR()   trace::Facade::error(__FILE__, __LINE__)
-#else // ARES_TESTS is defined
-    #define ARES_NOOP_STREAM if (false) std::cout
-    #define ARES_DEBUG()     ARES_NOOP_STREAM
-    #define ARES_INFO()      ARES_NOOP_STREAM
-    #define ARES_WARNING()   ARES_NOOP_STREAM
-    #define ARES_ERROR()     ARES_NOOP_STREAM
 #endif
 
