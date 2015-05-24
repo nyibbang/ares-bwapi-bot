@@ -20,12 +20,14 @@
 
 #include "Trace.h"
 #include "Logger.h"
+#include "Utils.h"
 #include <boost/format.hpp>
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <ctime>
 #include <future>
 #include <list>
+#include <random>
 
 namespace
 {
@@ -116,7 +118,7 @@ TEST(CoreTraceTest, TracesLayoutAuxiliaryLoggerAndThreadSafe)
 
     // Open the log output
     std::ifstream logFile;
-    logFile.open(std::getenv("HOME") + std::string("/AresBWAPI.log"));
+    logFile.open(utils::homePath() + std::string("/AresBWAPI.log"));
 
     // Read each line and check if they match the layout
     std::string line;

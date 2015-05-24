@@ -18,42 +18,12 @@
  * USA
  */
 
-#include "BufferStream.h"
-#include "Logger.h"
+#pragma once
 
-namespace trace
+#include <string>
+
+namespace utils
 {
-
-BufferStream::BufferStream(AbstractLogger& logger, LogContext&& context)
-    : m_logger(logger)
-    , m_context(std::move(context))
-{}
-
-BufferStream::~BufferStream()
-{
-    try {
-        m_logger.log(m_context, m_buffer.str() + '\n');
-    }
-    catch (const std::exception& ex) {
-        // Maybe warn the user of the error in some way, to do later
-    }
-}
-
-BufferStream::pointer operator<<(BufferStream::pointer bfs, BufferStream::stream_manipulator manip)
-{
-    if (!bfs) return bfs;
-    bfs->m_buffer << manip;
-    return bfs;
-}
-
-BufferStreamFactory::BufferStreamFactory(AbstractLogger& logger)
-    : m_logger(logger)
-{}
-
-BufferStream::pointer BufferStreamFactory::create(LogContext&& context) const
-{
-    return std::make_shared<BufferStream>(m_logger, std::move(context));
-}
-
+    std::string homePath();
 }
 

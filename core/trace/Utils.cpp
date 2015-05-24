@@ -18,42 +18,29 @@
  * USA
  */
 
-#include "BufferStream.h"
-#include "Logger.h"
+#pragma once
 
-namespace trace
+#include "config.h"
+#include "Utils.h"
+#ifdef ARES_MSWINDOWS
+#include <windows.h>
+#include <shlobj.h>
+#endif
+
+namespace utils
 {
 
-BufferStream::BufferStream(AbstractLogger& logger, LogContext&& context)
-    : m_logger(logger)
-    , m_context(std::move(context))
-{}
-
-BufferStream::~BufferStream()
+std::string homePath()
 {
-    try {
-        m_logger.log(m_context, m_buffer.str() + '\n');
+#ifdef ARES_MSWINDOWS
+    WCHAR wpath[MAX_PATH];
+    if (SUCCEEDED(SHGetFolderPathW(0, CSIDL_PROFILE, 0, 0, wpath)))
+    {
+        std::wstring path(wpath);
+        return std::string(path.begin(), path.end());
     }
-    catch (const std::exception& ex) {
-        // Maybe warn the user of the error in some way, to do later
-    }
-}
-
-BufferStream::pointer operator<<(BufferStream::pointer bfs, BufferStream::stream_manipulator manip)
-{
-    if (!bfs) return bfs;
-    bfs->m_buffer << manip;
-    return bfs;
-}
-
-BufferStreamFactory::BufferStreamFactory(AbstractLogger& logger)
-    : m_logger(logger)
-{}
-
-BufferStream::pointer BufferStreamFactory::create(LogContext&& context) const
-{
-    return std::make_shared<BufferStream>(m_logger, std::move(context));
+#endif
+    return std::getenv("HOME");
 }
 
 }
-

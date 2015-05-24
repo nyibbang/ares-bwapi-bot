@@ -22,34 +22,13 @@
 #include "config.h"
 #include "Layout.h"
 #include "Logger.h"
-#ifdef ARES_MSWINDOWS
-#include <windows.h>
-#include <shlobj.h>
-#endif
-
-namespace
-{
-
-std::string homePath() noexcept
-{
-#if ARES_MSWINDOWS
-    WCHAR wpath[MAX_PATH];
-    if(SUCCEEDED(SHGetFolderPathW(0, CSIDL_PROFILE, 0, 0, wpath)))
-    {
-        std::wstring path(wpath);
-        return std::string(path.begin(), path.end());
-    }
-#endif
-    return std::getenv("HOME");
-}
-
-}
+#include "Utils.h"
 
 namespace trace
 {
 
-Facade::Facade() noexcept
-    : m_fileStream(homePath() + "/AresBWAPI.log")
+Facade::Facade()
+    : m_fileStream(utils::homePath() + "/AresBWAPI.log")
     , m_fileLogger(new OstreamLogger(m_fileStream))
     , m_fileLayout(new CompleteLayout())
     , m_layoutFileLogger(new LayoutLogger(*m_fileLogger, *m_fileLayout))
@@ -63,35 +42,35 @@ Facade::Facade() noexcept
     m_fileStream.exceptions(std::ios_base::failbit);
 }
 
-Facade& Facade::instance() noexcept
+Facade& Facade::instance()
 {
     static Facade instance;
     return instance;
 }
 
-void Facade::resetAuxiliaryLogger() noexcept
+void Facade::resetAuxiliaryLogger()
 {
     instance().m_auxiliaryLogger.reset();
 }
 
 #ifdef ARES_DEBUG_BUILD
-BufferStream::pointer Facade::debug(const std::string& file, int line) noexcept
+BufferStream::pointer Facade::debug(const std::string& file, int line)
 {
     return instance().m_fileBSF->create({"DEBUG", file, line});
 }
 #endif
 
-BufferStream::pointer Facade::info(const std::string& file, int line) noexcept
+BufferStream::pointer Facade::info(const std::string& file, int line)
 {
     return instance().m_fileBSF->create({"INFO", file, line});
 }
 
-BufferStream::pointer Facade::warning(const std::string& file, int line) noexcept
+BufferStream::pointer Facade::warning(const std::string& file, int line)
 {
     return instance().m_compositeBSF->create({"WARNING", file, line});
 }
 
-BufferStream::pointer Facade::error(const std::string& file, int line) noexcept
+BufferStream::pointer Facade::error(const std::string& file, int line)
 {
     return instance().m_compositeBSF->create({"ERROR", file, line});
 }

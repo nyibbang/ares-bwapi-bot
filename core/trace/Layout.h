@@ -25,7 +25,7 @@
 namespace trace
 {
 
-class LogContext;
+struct LogContext;
 
 class AbstractLayout
 {

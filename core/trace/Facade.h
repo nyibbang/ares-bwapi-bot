@@ -35,16 +35,16 @@ class Facade final
 {
     public:
 #ifdef ARES_DEBUG_BUILD
-        static BufferStream::pointer debug(const std::string& file, int line) noexcept;
+        static BufferStream::pointer debug(const std::string& file, int line);
 #endif
-        static BufferStream::pointer info(const std::string& file, int line) noexcept;
-        static BufferStream::pointer warning(const std::string& file, int line) noexcept;
-        static BufferStream::pointer error(const std::string& file, int line) noexcept;
+        static BufferStream::pointer info(const std::string& file, int line);
+        static BufferStream::pointer warning(const std::string& file, int line);
+        static BufferStream::pointer error(const std::string& file, int line);
 
-        static void resetAuxiliaryLogger() noexcept;
+        static void resetAuxiliaryLogger();
 
         template<class TAuxiliaryLogger, class... TArgs>
-        static void initializeAuxiliaryLogger(TArgs&&... args) noexcept
+        static void initializeAuxiliaryLogger(TArgs&&... args)
         {
             try {
                 instance().m_auxiliaryLogger.reset(new TAuxiliaryLogger(std::forward<TArgs>(args)...));
@@ -55,8 +55,8 @@ class Facade final
         }
 
     private:
-        Facade() noexcept;
-        static Facade& instance() noexcept;
+        Facade();
+        static Facade& instance();
 
         std::ofstream m_fileStream;
         std::unique_ptr<AbstractLogger> m_auxiliaryLogger;

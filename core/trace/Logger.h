@@ -26,7 +26,7 @@
 namespace trace
 {
 
-class LogContext;
+struct LogContext;
 class AbstractLayout;
 
 class AbstractLogger
@@ -39,7 +39,7 @@ class AbstractLogger
 class OstreamLogger final : public AbstractLogger
 {
     public:
-        OstreamLogger(std::ostream& os) noexcept;
+        OstreamLogger(std::ostream& os);
         void log(const LogContext&, const std::string& message) override;
 
     private:
@@ -49,7 +49,7 @@ class OstreamLogger final : public AbstractLogger
 class CompositeLogger final : public AbstractLogger
 {
     public:
-        CompositeLogger(AbstractLogger& primaryLogger, AbstractLogger& secondaryLogger) noexcept;
+        CompositeLogger(AbstractLogger& primaryLogger, AbstractLogger& secondaryLogger);
         void log(const LogContext& context, const std::string& message) override;
 
     private:
@@ -60,7 +60,7 @@ class CompositeLogger final : public AbstractLogger
 class ConditionalAuxiliaryLogger final : public AbstractLogger
 {
     public:
-        ConditionalAuxiliaryLogger(std::unique_ptr<AbstractLogger>& auxiliaryLogger) noexcept;
+        ConditionalAuxiliaryLogger(std::unique_ptr<AbstractLogger>& auxiliaryLogger);
         void log(const LogContext& context, const std::string& message) override;
 
     private:
@@ -70,7 +70,7 @@ class ConditionalAuxiliaryLogger final : public AbstractLogger
 class LayoutLogger final : public AbstractLogger
 {
     public:
-        LayoutLogger(AbstractLogger& logger, AbstractLayout& layout) noexcept;
+        LayoutLogger(AbstractLogger& logger, AbstractLayout& layout);
         void log(const LogContext& context, const std::string& message) override;
 
     private:

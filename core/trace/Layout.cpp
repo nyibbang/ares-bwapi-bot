@@ -27,7 +27,7 @@
 namespace threading
 {
 
-std::tm localtime(const std::time_t& time) noexcept
+std::tm localtime(const std::time_t& time)
 {
     std::tm result;
 #ifdef ARES_MSWINDOWS
@@ -43,7 +43,7 @@ std::tm localtime(const std::time_t& time) noexcept
 namespace
 {
 
-std::string dateTime() noexcept
+std::string dateTime()
 {
     using sc = std::chrono::system_clock;
     auto nowTm = threading::localtime(sc::to_time_t(sc::now()));

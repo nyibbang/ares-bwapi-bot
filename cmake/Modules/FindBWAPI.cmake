@@ -17,14 +17,15 @@
 # USA
 
 # List of standard paths where BWAPI could be found
+set(_PF86 "ProgramFiles(x86)")
 set(BWAPI_PATHS
-    "$ENV{ProgramFiles}"
-    "$ENV{ProgramFiles(x86)}"
-    "$ENV{ProgramW6432}"
-    "$ENV{BWAPI_DIR}"
-    "$ENV{BWAPIDIR}"
-    "${BWAPI_DIR}"
-    "${BWAPIDIR}"
+    $ENV{ProgramFiles}
+	$ENV{${_PF86}}
+    $ENV{ProgramW6432}
+    $ENV{BWAPI_DIR}
+    $ENV{BWAPIDIR}
+    ${BWAPI_DIR}
+    ${BWAPIDIR}
 )
 
 # Find BWAPI include directory

@@ -23,6 +23,12 @@ set(CMAKE_THREAD_PREFER_PTHREAD true)
 find_package(Threads REQUIRED)
 
 ################################################################################
+# Boost library
+################################################################################
+set(Boost_USE_MULTITHREADED ON)
+find_package(Boost REQUIRED)
+
+################################################################################
 # CoreTest executable
 ################################################################################
 add_executable(AresCoreTraceTest
@@ -43,6 +49,7 @@ target_include_directories(AresCoreTraceTest
     PUBLIC
         ${gmock_SOURCE_DIR}/include
         ${gtest_SOURCE_DIR}/include
+		${Boost_INCLUDE_DIRS}
 )
 target_link_libraries(AresCoreTraceTest
     AresCoreTrace

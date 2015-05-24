@@ -25,7 +25,7 @@
 namespace trace
 {
 
-OstreamLogger::OstreamLogger(std::ostream& os) noexcept
+OstreamLogger::OstreamLogger(std::ostream& os)
     : m_ostream(os)
 {}
 
@@ -39,7 +39,7 @@ void OstreamLogger::log(const LogContext&, const std::string& message)
     }
 }
 
-CompositeLogger::CompositeLogger(AbstractLogger& primaryLogger, AbstractLogger& secondaryLogger) noexcept
+CompositeLogger::CompositeLogger(AbstractLogger& primaryLogger, AbstractLogger& secondaryLogger)
     : m_primaryLogger(primaryLogger)
     , m_secondaryLogger(secondaryLogger)
 {}
@@ -50,7 +50,7 @@ void CompositeLogger::log(const LogContext& context, const std::string& message)
     m_secondaryLogger.log(context, message);
 }
 
-ConditionalAuxiliaryLogger::ConditionalAuxiliaryLogger(std::unique_ptr<AbstractLogger>& auxiliaryLogger) noexcept
+ConditionalAuxiliaryLogger::ConditionalAuxiliaryLogger(std::unique_ptr<AbstractLogger>& auxiliaryLogger)
     : m_auxiliaryLogger(auxiliaryLogger)
 {}
 
@@ -61,7 +61,7 @@ void ConditionalAuxiliaryLogger::log(const LogContext& context, const std::strin
     }
 }
 
-LayoutLogger::LayoutLogger(AbstractLogger& logger, AbstractLayout& layout) noexcept
+LayoutLogger::LayoutLogger(AbstractLogger& logger, AbstractLayout& layout)
     : m_logger(logger)
     , m_layout(layout)
 {}

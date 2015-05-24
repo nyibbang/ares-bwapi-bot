@@ -35,11 +35,11 @@ class BufferStream final
         using stream_manipulator = std::ostream&(&)(std::ostream&);
         using pointer = std::shared_ptr<BufferStream>;
 
-        BufferStream(AbstractLogger& logger, LogContext&& m_context) noexcept;
+        BufferStream(AbstractLogger& logger, LogContext&& m_context);
         ~BufferStream();
 
-        template<class T> friend BufferStream::pointer operator<<(BufferStream::pointer bfs, T&& t) noexcept;
-        friend BufferStream::pointer operator<<(BufferStream::pointer bfs, stream_manipulator manip) noexcept;
+        template<class T> friend BufferStream::pointer operator<<(BufferStream::pointer bfs, T&& t);
+        friend BufferStream::pointer operator<<(BufferStream::pointer bfs, stream_manipulator manip);
 
     private:
         AbstractLogger& m_logger;
@@ -47,20 +47,20 @@ class BufferStream final
         std::ostringstream m_buffer;
 };
 
-template<class T> BufferStream::pointer operator<<(BufferStream::pointer bfs, T&& t) noexcept
+template<class T> BufferStream::pointer operator<<(BufferStream::pointer bfs, T&& t)
 {
-    if (not bfs) return bfs;
+    if (!bfs) return bfs;
     bfs->m_buffer << std::forward<T>(t);
     return bfs;
 }
 
-BufferStream::pointer operator<<(BufferStream::pointer bfs, BufferStream::stream_manipulator manip) noexcept;
+BufferStream::pointer operator<<(BufferStream::pointer bfs, BufferStream::stream_manipulator manip);
 
 class BufferStreamFactory final
 {
     public:
-        BufferStreamFactory(AbstractLogger& logger) noexcept;
-        BufferStream::pointer create(LogContext&& context) const noexcept;
+        BufferStreamFactory(AbstractLogger& logger);
+        BufferStream::pointer create(LogContext&& context) const;
 
     private:
         AbstractLogger& m_logger;
