@@ -114,7 +114,12 @@ TEST(CoreTraceTest, TracesLayoutAuxiliaryLoggerAndThreadSafe)
         }
         futureList.push_back(std::move(std::async(std::launch::async, loopTrace, type)));
     }
-    futureList.clear();
+
+    /* Wait for all threads to end (note: on visual studio 2012, the destructor of std::future
+       does not block as it should, this is a bug. Instead we have to call wait explicitly) */
+    for (auto&& future : futureList) {
+        future.wait();
+    }
 
     // Open the log output
     std::ifstream logFile;
