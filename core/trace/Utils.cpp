@@ -18,8 +18,6 @@
  * USA
  */
 
-#pragma once
-
 #include "config.h"
 #include "Utils.h"
 #ifdef ARES_MSWINDOWS

@@ -25,7 +25,7 @@ add_library(AresCoreTrace STATIC
     BufferStream.h BufferStream.cpp
     Layout.h Layout.cpp
     Logger.h Logger.cpp
-	Utils.h Utils.cpp
+    Utils.h Utils.cpp
 )
 
 target_include_directories(AresCoreTrace

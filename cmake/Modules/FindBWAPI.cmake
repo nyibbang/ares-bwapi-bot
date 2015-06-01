@@ -20,7 +20,7 @@
 set(_PF86 "ProgramFiles(x86)")
 set(BWAPI_PATHS
     $ENV{ProgramFiles}
-	$ENV{${_PF86}}
+    $ENV{${_PF86}}
     $ENV{ProgramW6432}
     $ENV{BWAPI_DIR}
     $ENV{BWAPIDIR}

@@ -49,7 +49,7 @@ target_include_directories(AresCoreTraceTest
     PUBLIC
         ${gmock_SOURCE_DIR}/include
         ${gtest_SOURCE_DIR}/include
-		${Boost_INCLUDE_DIRS}
+        ${Boost_INCLUDE_DIRS}
 )
 target_link_libraries(AresCoreTraceTest
     AresCoreTrace
