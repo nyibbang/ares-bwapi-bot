@@ -20,19 +20,19 @@
 
 #pragma once
 
+#include "AbstractCommander.h"
+#include <gmock/gmock.h>
+
 namespace ares
 {
-class AbstractEventListener;
+namespace test
+{
 
-class AbstractEventDispatcher
+class MockCommander : public AbstractCommander
 {
     public:
-        AbstractEventDispatcher() {}
-        virtual ~AbstractEventDispatcher() {}
-
-        virtual void addListener(AbstractEventListener& listener) = 0;
-        virtual void removeListener(AbstractEventListener& listener) = 0;
+        MOCK_METHOD2(execute, void(CommandType type, int unitId));
 };
 
 }
-
+}

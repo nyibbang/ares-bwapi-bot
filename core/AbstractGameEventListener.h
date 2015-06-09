@@ -18,11 +18,24 @@
  * USA
  */
 
-#include <gtest/gtest.h>
+#pragma once
 
-int main(int argc, char** argv)
+namespace ares
 {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+
+class AbstractGameEventListener
+{
+    public:
+        virtual ~AbstractGameEventListener() = 0; // virtual pure to make the class abstract
+
+        /* All these methods are implemented empty, so that concrete
+           subclasses can just implement the ones they need */
+        virtual void onStart() {}
+        virtual void onEnd(bool /*isWinner*/) {}
+        virtual void onFrame() {}
+};
+
+inline AbstractGameEventListener::~AbstractGameEventListener() {}
+
 }
 

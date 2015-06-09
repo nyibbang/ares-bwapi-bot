@@ -18,14 +18,28 @@
  * USA
  */
 
-#include "Core.h"
-#include "trace/Trace.h"
+#pragma once
 
-/* Empty file just to test the build system */
-int foo()
+#include "AbstractWorkerEventListener.h"
+
+namespace ares
 {
-    ARES_WARNING() << "This function is most likely to do nothing";
-    ARES_INFO() << "This function will still return 42";
-    return 42;
-}
 
+template <class> class AbstractDispatcher;
+class AbstractCommander;
+
+class WorkerManager final : public AbstractWorkerEventListener
+{
+    public:
+        WorkerManager(AbstractDispatcher<AbstractWorkerEventListener>& dispatcher,
+                      AbstractCommander& commander);
+        ~WorkerManager();
+
+        void onWorkerIdle(int unitId) override;
+
+    private:
+        AbstractDispatcher<AbstractWorkerEventListener>& m_dispatcher;
+        AbstractCommander& m_commander;
+};
+
+}

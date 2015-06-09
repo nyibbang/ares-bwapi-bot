@@ -20,5 +20,21 @@
 
 #pragma once
 
-int foo();
+#include "AbstractDispatcher.h"
+#include <gmock/gmock.h>
 
+namespace ares
+{
+namespace test
+{
+
+template <class Listener>
+class MockDispatcher : public AbstractDispatcher<Listener>
+{
+    public:
+        MOCK_METHOD1_T(suscribe, void(Listener& listener));
+        MOCK_METHOD1_T(unsuscribe, void(Listener& listener));
+};
+
+}
+}

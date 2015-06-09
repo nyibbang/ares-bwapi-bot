@@ -18,11 +18,16 @@
  * USA
  */
 
-#include <gtest/gtest.h>
+#pragma once
 
-int main(int argc, char** argv)
+namespace ares
 {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
 
+class AbstractWorkerEventListener
+{
+    public:
+        virtual ~AbstractWorkerEventListener() {}
+        virtual void onWorkerIdle(int unitId) = 0;
+};
+
+}

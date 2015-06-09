@@ -18,11 +18,22 @@
  * USA
  */
 
-#include <gtest/gtest.h>
+#pragma once
 
-int main(int argc, char** argv)
+namespace ares
 {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
 
+enum class CommandType
+{
+    HarvestClosestMineral
+};
+
+class AbstractCommander
+{
+    public:
+        virtual ~AbstractCommander() {}
+
+        virtual void execute(CommandType type, int unitId) = 0;
+};
+
+}

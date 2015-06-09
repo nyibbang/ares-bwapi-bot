@@ -21,7 +21,7 @@
 ################################################################################
 add_executable(AresCoreTest
     TestMain.cpp
-    TestCore.cpp
+    WorkerManagerTest.cpp
 )
 add_test(NAME AresCoreTest COMMAND AresCoreTest)
 

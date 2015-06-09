@@ -18,11 +18,28 @@
  * USA
  */
 
-#include <gtest/gtest.h>
+#include "WorkerManager.h"
+#include "AbstractDispatcher.h"
+#include "AbstractCommander.h"
 
-int main(int argc, char** argv)
+namespace ares
 {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+
+WorkerManager::WorkerManager(AbstractDispatcher<AbstractWorkerEventListener>& dispatcher, AbstractCommander& commander)
+    : m_dispatcher(dispatcher)
+    , m_commander(commander)
+{
+    m_dispatcher.suscribe(*this);
 }
 
+WorkerManager::~WorkerManager()
+{
+    m_dispatcher.unsuscribe(*this);
+}
+
+void WorkerManager::onWorkerIdle(int unitId)
+{
+    m_commander.execute(CommandType::HarvestClosestMineral, unitId);
+}
+
+}

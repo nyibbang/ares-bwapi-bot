@@ -18,11 +18,20 @@
  * USA
  */
 
-#include "Core.h"
-#include <gtest/gtest.h>
+#pragma once
 
-TEST(FooTest, FooReturns42)
+namespace ares
 {
-  EXPECT_EQ(foo(), 42);
+
+template <class Listener>
+class AbstractDispatcher
+{
+    public:
+        virtual ~AbstractDispatcher() {}
+
+        virtual void suscribe(Listener& listener) = 0;
+        virtual void unsuscribe(Listener& listener) = 0;
+};
+
 }
 

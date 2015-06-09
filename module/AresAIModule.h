@@ -21,15 +21,18 @@
 #pragma once
 
 #include "AbstractEventDispatcher.h"
-#include "AbstractEventListener.h"
 #include <BWAPI.h>
 #include <list>
 
 namespace ares
 {
 
+class AbstractGameEventListener;
+class AbstractWorkerEventListener;
+
 class AresAIModule final : public BWAPI::AIModule
-                         , public AbstractEventDispatcher
+                         , public AbstractDispatcher<AbstractGameEventListener>
+                         , public AbstractDispatcher<AbstractWorkerEventListener>
 {
     public:
         void onStart();
@@ -43,11 +46,15 @@ class AresAIModule final : public BWAPI::AIModule
         void onUnitCreate(BWAPI::Unit unit);
         void onUnitMorph(BWAPI::Unit unit);
 
-        void addListener(AbstractEventListener& listener) override;
-        void removeListener(AbstractEventListener& listener) override;
+        void suscribe(AbstractGameEventListener& listener) override;
+        void unsuscribe(AbstractGameEventListener& listener) override;
+
+        void suscribe(AbstractWorkerEventListener& listener) override;
+        void unsuscribe(AbstractWorkerEventListener& listener) override;
 
     private:
-        std::list<std::reference_wrapper<AbstractEventListener>> m_listeners;
+        std::list<std::reference_wrapper<AbstractGameEventListener>> m_gameListeners;
+        std::list<std::reference_wrapper<AbstractWorkerEventListener>> m_workerListeners;
 };
 
 }

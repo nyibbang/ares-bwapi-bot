@@ -18,25 +18,22 @@
  * USA
  */
 
-#pragma once
+#include "WorkerManager.h"
+#include "MockDispatcher.h"
+#include "MockCommander.h"
+#include <gtest/gtest.h>
 
-namespace ares
+using namespace ares;
+using namespace ::testing;
+
+TEST(WorkerManager, WorkerManager_sends_idle_workers_to_harvest_minerals)
 {
-
-class AbstractEventListener
-{
-    public:
-        AbstractEventListener() {}
-        virtual ~AbstractEventListener() = 0; // virtual pure to make the class abstract
-
-        /* All these methods are implemented empty, so that concrete
-           subclasses can just implement the ones they need */
-        virtual void onStart() {}
-        virtual void onEnd(bool /*isWinner*/) {}
-        virtual void onFrame() {}
-};
-
-inline AbstractEventListener::~AbstractEventListener() {}
-
+    test::MockDispatcher<AbstractWorkerEventListener> dispatcher;
+    test::MockCommander commander;
+    EXPECT_CALL(dispatcher, suscribe(_));
+    WorkerManager manager(dispatcher, commander);
+    const int unitId = 42;
+    EXPECT_CALL(commander, execute(CommandType::HarvestClosestMineral, unitId));
+    manager.onWorkerIdle(unitId);
+    EXPECT_CALL(dispatcher, unsuscribe(Ref(manager)));
 }
-
