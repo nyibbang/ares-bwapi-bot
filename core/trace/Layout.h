@@ -27,24 +27,28 @@ namespace trace
 
 struct LogContext;
 
-class AbstractLayout
+namespace abc
+{
+
+class Layout
 {
     public:
-        virtual ~AbstractLayout() {}
+        virtual ~Layout() {}
         virtual std::string format(const LogContext& context, const std::string& message) const = 0;
 };
 
-class CompleteLayout final : public AbstractLayout
+}
+
+class CompleteLayout final : public abc::Layout
 {
     public:
         std::string format(const LogContext& context, const std::string& message) const override;
 };
 
-class BasicLayout final : public AbstractLayout
+class BasicLayout final : public abc::Layout
 {
     public:
         std::string format(const LogContext& context, const std::string& message) const override;
 };
 
 }
-

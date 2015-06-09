@@ -19,12 +19,12 @@
  */
 
 #include "AresAIModule.h"
-#include "AbstractGameEventListener.h"
-#include "AbstractWorkerEventListener.h"
+#include "abc/GameEventListener.h"
+#include "abc/WorkerEventListener.h"
 #include <iostream>
 
 #define NOTIFY_LISTENERS(func, ...) \
-    for (AbstractGameEventListener& listener : m_gameListeners) { \
+    for (abc::GameEventListener& listener : m_gameListeners) { \
         listener.func(__VA_ARGS__); \
     }
 
@@ -287,24 +287,24 @@ void AresAIModule::onUnitMorph(BWAPI::Unit unit)
     }
 }
 
-void AresAIModule::suscribe(AbstractGameEventListener& listener)
+void AresAIModule::suscribe(abc::GameEventListener& listener)
 {
     m_gameListeners.emplace_back(listener);
 }
 
-void AresAIModule::unsuscribe(AbstractGameEventListener& listener)
+void AresAIModule::unsuscribe(abc::GameEventListener& listener)
 {
     m_gameListeners.remove_if([&listener](m_gameListeners::value_type listenRef) -> bool {
         return &listenRef.get() == &listener;
     });
 }
 
-void suscribe(AbstractWorkerEventListener& listener)
+void suscribe(abc::WorkerEventListener& listener)
 {
     m_workerListeners.emplace_back(listener);
 }
 
-void unsuscribe(AbstractWorkerEventListener& listener)
+void unsuscribe(abc::WorkerEventListener& listener)
 {
     m_eventListeners.remove_if([&listener](m_eventListeners::value_type listenRef) -> bool {
         return &listenRef.get() == &listener;

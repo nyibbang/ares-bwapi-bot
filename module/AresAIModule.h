@@ -20,19 +20,22 @@
 
 #pragma once
 
-#include "AbstractEventDispatcher.h"
+#include "core/abc/EventDispatcher.h"
 #include <BWAPI.h>
 #include <list>
 
 namespace ares
 {
 
-class AbstractGameEventListener;
-class AbstractWorkerEventListener;
+namespace abc
+{
+class GameEventListener;
+class WorkerEventListener;
+}
 
 class AresAIModule final : public BWAPI::AIModule
-                         , public AbstractDispatcher<AbstractGameEventListener>
-                         , public AbstractDispatcher<AbstractWorkerEventListener>
+                         , public abc::Dispatcher<abc::GameEventListener>
+                         , public abc::Dispatcher<abc::WorkerEventListener>
 {
     public:
         void onStart();
@@ -46,16 +49,15 @@ class AresAIModule final : public BWAPI::AIModule
         void onUnitCreate(BWAPI::Unit unit);
         void onUnitMorph(BWAPI::Unit unit);
 
-        void suscribe(AbstractGameEventListener& listener) override;
-        void unsuscribe(AbstractGameEventListener& listener) override;
+        void suscribe(abc::GameEventListener& listener) override;
+        void unsuscribe(abc::GameEventListener& listener) override;
 
-        void suscribe(AbstractWorkerEventListener& listener) override;
-        void unsuscribe(AbstractWorkerEventListener& listener) override;
+        void suscribe(abc::WorkerEventListener& listener) override;
+        void unsuscribe(abc::WorkerEventListener& listener) override;
 
     private:
-        std::list<std::reference_wrapper<AbstractGameEventListener>> m_gameListeners;
-        std::list<std::reference_wrapper<AbstractWorkerEventListener>> m_workerListeners;
+        std::list<std::reference_wrapper<abc::GameEventListener>> m_gameListeners;
+        std::list<std::reference_wrapper<abc::WorkerEventListener>> m_workerListeners;
 };
 
 }
-

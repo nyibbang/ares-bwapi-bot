@@ -19,13 +19,13 @@
  */
 
 #include "WorkerManager.h"
-#include "AbstractDispatcher.h"
-#include "AbstractCommander.h"
+#include "abc/Dispatcher.h"
+#include "abc/Commander.h"
 
 namespace ares
 {
 
-WorkerManager::WorkerManager(AbstractDispatcher<AbstractWorkerEventListener>& dispatcher, AbstractCommander& commander)
+WorkerManager::WorkerManager(abc::Dispatcher<abc::WorkerEventListener>& dispatcher, abc::Commander& commander)
     : m_dispatcher(dispatcher)
     , m_commander(commander)
 {

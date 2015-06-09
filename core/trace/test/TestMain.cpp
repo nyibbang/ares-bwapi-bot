@@ -65,16 +65,16 @@ void loopTrace(int type)
     }
 }
 
-class MockLogger : public trace::AbstractLogger
+class MockLogger : public trace::abc::Logger
 {
     public:
         MOCK_METHOD2(log, void(const trace::LogContext&, const std::string&));
 };
 
-class EncapsulatedLogger : public trace::AbstractLogger
+class EncapsulatedLogger : public trace::abc::Logger
 {
     public:
-        EncapsulatedLogger(trace::AbstractLogger& logger)
+        EncapsulatedLogger(trace::abc::Logger& logger)
             : m_logger(logger)
         {}
 
@@ -83,7 +83,7 @@ class EncapsulatedLogger : public trace::AbstractLogger
         }
 
     private:
-        trace::AbstractLogger& m_logger;
+        trace::abc::Logger& m_logger;
 };
 
 }

@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "AbstractDispatcher.h"
+#include "abc/Dispatcher.h"
 #include <gmock/gmock.h>
 
 namespace ares
@@ -29,7 +29,7 @@ namespace test
 {
 
 template <class Listener>
-class MockDispatcher : public AbstractDispatcher<Listener>
+class MockDispatcher : public abc::Dispatcher<Listener>
 {
     public:
         MOCK_METHOD1_T(suscribe, void(Listener& listener));

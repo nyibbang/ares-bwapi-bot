@@ -24,7 +24,7 @@
 namespace trace
 {
 
-BufferStream::BufferStream(AbstractLogger& logger, LogContext&& context)
+BufferStream::BufferStream(abc::Logger& logger, LogContext&& context)
     : m_logger(logger)
     , m_context(std::move(context))
 {}
@@ -46,7 +46,7 @@ BufferStream::pointer operator<<(BufferStream::pointer bfs, BufferStream::stream
     return bfs;
 }
 
-BufferStreamFactory::BufferStreamFactory(AbstractLogger& logger)
+BufferStreamFactory::BufferStreamFactory(abc::Logger& logger)
     : m_logger(logger)
 {}
 

@@ -27,7 +27,10 @@
 namespace trace
 {
 
-class AbstractLogger;
+namespace abc
+{
+class Logger;
+}
 
 class BufferStream final
 {
@@ -35,14 +38,14 @@ class BufferStream final
         using stream_manipulator = std::ostream&(&)(std::ostream&);
         using pointer = std::shared_ptr<BufferStream>;
 
-        BufferStream(AbstractLogger& logger, LogContext&& m_context);
+        BufferStream(abc::Logger& logger, LogContext&& m_context);
         ~BufferStream();
 
         template<class T> friend BufferStream::pointer operator<<(BufferStream::pointer bfs, T&& t);
         friend BufferStream::pointer operator<<(BufferStream::pointer bfs, stream_manipulator manip);
 
     private:
-        AbstractLogger& m_logger;
+        abc::Logger& m_logger;
         LogContext m_context;
         std::ostringstream m_buffer;
 };
@@ -59,11 +62,11 @@ BufferStream::pointer operator<<(BufferStream::pointer bfs, BufferStream::stream
 class BufferStreamFactory final
 {
     public:
-        BufferStreamFactory(AbstractLogger& logger);
+        BufferStreamFactory(abc::Logger& logger);
         BufferStream::pointer create(LogContext&& context) const;
 
     private:
-        AbstractLogger& m_logger;
+        abc::Logger& m_logger;
 };
 
 }

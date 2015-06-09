@@ -28,7 +28,7 @@ using namespace ::testing;
 
 TEST(WorkerManager, WorkerManager_sends_idle_workers_to_harvest_minerals)
 {
-    test::MockDispatcher<AbstractWorkerEventListener> dispatcher;
+    test::MockDispatcher<abc::WorkerEventListener> dispatcher;
     test::MockCommander commander;
     EXPECT_CALL(dispatcher, suscribe(_));
     WorkerManager manager(dispatcher, commander);

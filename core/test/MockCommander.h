@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "AbstractCommander.h"
+#include "abc/Commander.h"
 #include <gmock/gmock.h>
 
 namespace ares
@@ -28,7 +28,7 @@ namespace ares
 namespace test
 {
 
-class MockCommander : public AbstractCommander
+class MockCommander : public abc::Commander
 {
     public:
         MOCK_METHOD2(execute, void(CommandType type, int unitId));

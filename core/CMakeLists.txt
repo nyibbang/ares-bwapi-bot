@@ -20,9 +20,9 @@
 # Core library
 ################################################################################
 add_library(AresCore STATIC
-    AbstractGameEventListener.h
-    AbstractDispatcher.h
-    AbstractCommander.h
+    abc/GameEventListener.h
+    abc/Dispatcher.h
+    abc/Commander.h
     WorkerManager.h WorkerManager.cpp
 )
 target_include_directories(AresCore

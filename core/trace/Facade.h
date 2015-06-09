@@ -28,8 +28,11 @@
 namespace trace
 {
 
-class AbstractLayout;
-class AbstractLogger;
+namespace abc
+{
+class Layout;
+class Logger;
+}
 
 class Facade final
 {
@@ -59,14 +62,14 @@ class Facade final
         static Facade& instance();
 
         std::ofstream m_fileStream;
-        std::unique_ptr<AbstractLogger> m_auxiliaryLogger;
-        std::unique_ptr<AbstractLogger> m_fileLogger;
-        std::unique_ptr<AbstractLayout> m_fileLayout;
-        std::unique_ptr<AbstractLogger> m_layoutFileLogger;
-        std::unique_ptr<AbstractLayout> m_auxiliaryLayout;
-        std::unique_ptr<AbstractLogger> m_conditionalAuxiliaryLogger;
-        std::unique_ptr<AbstractLogger> m_layoutAuxiliaryLogger;
-        std::unique_ptr<AbstractLogger> m_layoutCompositeLogger;
+        std::unique_ptr<abc::Logger> m_auxiliaryLogger;
+        std::unique_ptr<abc::Logger> m_fileLogger;
+        std::unique_ptr<abc::Layout> m_fileLayout;
+        std::unique_ptr<abc::Logger> m_layoutFileLogger;
+        std::unique_ptr<abc::Layout> m_auxiliaryLayout;
+        std::unique_ptr<abc::Logger> m_conditionalAuxiliaryLogger;
+        std::unique_ptr<abc::Logger> m_layoutAuxiliaryLogger;
+        std::unique_ptr<abc::Logger> m_layoutCompositeLogger;
         std::unique_ptr<BufferStreamFactory> m_fileBSF;
         std::unique_ptr<BufferStreamFactory> m_compositeBSF;
 };

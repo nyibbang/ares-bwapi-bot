@@ -22,20 +22,15 @@
 
 namespace ares
 {
+namespace abc
+{
 
-class AbstractGameEventListener
+class WorkerEventListener
 {
     public:
-        virtual ~AbstractGameEventListener() = 0; // virtual pure to make the class abstract
-
-        /* All these methods are implemented empty, so that concrete
-           subclasses can just implement the ones they need */
-        virtual void onStart() {}
-        virtual void onEnd(bool /*isWinner*/) {}
-        virtual void onFrame() {}
+        virtual ~WorkerEventListener() {}
+        virtual void onWorkerIdle(int unitId) = 0;
 };
 
-inline AbstractGameEventListener::~AbstractGameEventListener() {}
-
 }
-
+}

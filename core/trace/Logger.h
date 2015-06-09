@@ -27,16 +27,22 @@ namespace trace
 {
 
 struct LogContext;
-class AbstractLayout;
 
-class AbstractLogger
+namespace abc
+{
+
+class Layout;
+
+class Logger
 {
     public:
-        virtual ~AbstractLogger() {}
+        virtual ~Logger() {}
         virtual void log(const LogContext& context, const std::string& message) = 0;
 };
 
-class OstreamLogger final : public AbstractLogger
+}
+
+class OstreamLogger final : public abc::Logger
 {
     public:
         OstreamLogger(std::ostream& os);
@@ -46,36 +52,36 @@ class OstreamLogger final : public AbstractLogger
         std::ostream& m_ostream;
 };
 
-class CompositeLogger final : public AbstractLogger
+class CompositeLogger final : public abc::Logger
 {
     public:
-        CompositeLogger(AbstractLogger& primaryLogger, AbstractLogger& secondaryLogger);
+        CompositeLogger(abc::Logger& primaryLogger, abc::Logger& secondaryLogger);
         void log(const LogContext& context, const std::string& message) override;
 
     private:
-        AbstractLogger& m_primaryLogger;
-        AbstractLogger& m_secondaryLogger;
+        abc::Logger& m_primaryLogger;
+        abc::Logger& m_secondaryLogger;
 };
 
-class ConditionalAuxiliaryLogger final : public AbstractLogger
+class ConditionalAuxiliaryLogger final : public abc::Logger
 {
     public:
-        ConditionalAuxiliaryLogger(std::unique_ptr<AbstractLogger>& auxiliaryLogger);
+        ConditionalAuxiliaryLogger(std::unique_ptr<abc::Logger>& auxiliaryLogger);
         void log(const LogContext& context, const std::string& message) override;
 
     private:
-        std::unique_ptr<AbstractLogger>& m_auxiliaryLogger;
+        std::unique_ptr<abc::Logger>& m_auxiliaryLogger;
 };
 
-class LayoutLogger final : public AbstractLogger
+class LayoutLogger final : public abc::Logger
 {
     public:
-        LayoutLogger(AbstractLogger& logger, AbstractLayout& layout);
+        LayoutLogger(abc::Logger& logger, abc::Layout& layout);
         void log(const LogContext& context, const std::string& message) override;
 
     private:
-        AbstractLogger& m_logger;
-        AbstractLayout& m_layout;
+        abc::Logger& m_logger;
+        abc::Layout& m_layout;
 };
 
 }

@@ -23,15 +23,20 @@
 namespace ares
 {
 
-template <class Listener>
-class AbstractDispatcher
+enum class CommandType
+{
+    HarvestClosestMineral
+};
+
+namespace abc
+{
+
+class Commander
 {
     public:
-        virtual ~AbstractDispatcher() {}
-
-        virtual void suscribe(Listener& listener) = 0;
-        virtual void unsuscribe(Listener& listener) = 0;
+        virtual ~Commander() {}
+        virtual void execute(CommandType type, int unitId) = 0;
 };
 
 }
-
+}

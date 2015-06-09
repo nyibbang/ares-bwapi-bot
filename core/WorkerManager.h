@@ -20,26 +20,29 @@
 
 #pragma once
 
-#include "AbstractWorkerEventListener.h"
+#include "abc/WorkerEventListener.h"
 
 namespace ares
 {
 
-template <class> class AbstractDispatcher;
-class AbstractCommander;
+namespace abc
+{
+template <class> class Dispatcher;
+class Commander;
+}
 
-class WorkerManager final : public AbstractWorkerEventListener
+class WorkerManager final : public abc::WorkerEventListener
 {
     public:
-        WorkerManager(AbstractDispatcher<AbstractWorkerEventListener>& dispatcher,
-                      AbstractCommander& commander);
+        WorkerManager(abc::Dispatcher<abc::WorkerEventListener>& dispatcher,
+                      abc::Commander& commander);
         ~WorkerManager();
 
         void onWorkerIdle(int unitId) override;
 
     private:
-        AbstractDispatcher<AbstractWorkerEventListener>& m_dispatcher;
-        AbstractCommander& m_commander;
+        abc::Dispatcher<abc::WorkerEventListener>& m_dispatcher;
+        abc::Commander& m_commander;
 };
 
 }

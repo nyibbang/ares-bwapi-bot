@@ -39,7 +39,7 @@ void OstreamLogger::log(const LogContext&, const std::string& message)
     }
 }
 
-CompositeLogger::CompositeLogger(AbstractLogger& primaryLogger, AbstractLogger& secondaryLogger)
+CompositeLogger::CompositeLogger(abc::Logger& primaryLogger, abc::Logger& secondaryLogger)
     : m_primaryLogger(primaryLogger)
     , m_secondaryLogger(secondaryLogger)
 {}
@@ -50,7 +50,7 @@ void CompositeLogger::log(const LogContext& context, const std::string& message)
     m_secondaryLogger.log(context, message);
 }
 
-ConditionalAuxiliaryLogger::ConditionalAuxiliaryLogger(std::unique_ptr<AbstractLogger>& auxiliaryLogger)
+ConditionalAuxiliaryLogger::ConditionalAuxiliaryLogger(std::unique_ptr<abc::Logger>& auxiliaryLogger)
     : m_auxiliaryLogger(auxiliaryLogger)
 {}
 
@@ -61,7 +61,7 @@ void ConditionalAuxiliaryLogger::log(const LogContext& context, const std::strin
     }
 }
 
-LayoutLogger::LayoutLogger(AbstractLogger& logger, AbstractLayout& layout)
+LayoutLogger::LayoutLogger(abc::Logger& logger, abc::Layout& layout)
     : m_logger(logger)
     , m_layout(layout)
 {}
