@@ -34,6 +34,9 @@ class Layout;
 class Logger;
 }
 
+using LoggerPtr = std::unique_ptr<abc::Logger>;
+using LayoutPtr = std::unique_ptr<abc::Layout>;
+
 class Facade final
 {
     public:
@@ -44,32 +47,22 @@ class Facade final
         static BufferStream::pointer warning(const std::string& file, int line);
         static BufferStream::pointer error(const std::string& file, int line);
 
+        static void initializeAuxiliaryLogger(LoggerPtr auxLogger);
         static void resetAuxiliaryLogger();
-
-        template<class TAuxiliaryLogger, class... TArgs>
-        static void initializeAuxiliaryLogger(TArgs&&... args)
-        {
-            try {
-                instance().m_auxiliaryLogger.reset(new TAuxiliaryLogger(std::forward<TArgs>(args)...));
-            }
-            catch (const std::exception& ex) {
-                // AuxiliaryLogger constructor threw an exception, nothing we can do, just pass. Maybe treat later
-            }
-        }
 
     private:
         Facade();
         static Facade& instance();
 
         std::ofstream m_fileStream;
-        std::unique_ptr<abc::Logger> m_auxiliaryLogger;
-        std::unique_ptr<abc::Logger> m_fileLogger;
-        std::unique_ptr<abc::Layout> m_fileLayout;
-        std::unique_ptr<abc::Logger> m_layoutFileLogger;
-        std::unique_ptr<abc::Layout> m_auxiliaryLayout;
-        std::unique_ptr<abc::Logger> m_conditionalAuxiliaryLogger;
-        std::unique_ptr<abc::Logger> m_layoutAuxiliaryLogger;
-        std::unique_ptr<abc::Logger> m_layoutCompositeLogger;
+        LoggerPtr m_auxiliaryLogger;
+        LoggerPtr m_fileLogger;
+        LayoutPtr m_fileLayout;
+        LoggerPtr m_layoutFileLogger;
+        LayoutPtr m_auxiliaryLayout;
+        LoggerPtr m_conditionalAuxiliaryLogger;
+        LoggerPtr m_layoutAuxiliaryLogger;
+        LoggerPtr m_layoutCompositeLogger;
         std::unique_ptr<BufferStreamFactory> m_fileBSF;
         std::unique_ptr<BufferStreamFactory> m_compositeBSF;
 };

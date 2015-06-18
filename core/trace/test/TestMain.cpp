@@ -92,7 +92,7 @@ TEST(CoreTraceTest, TracesLayoutAuxiliaryLoggerAndThreadSafe)
 {
     // Set the auxiliary logger to a mock object and expect calls on it (info traces are not logged into auxiliary)
     MockLogger mockLogger;
-    trace::Facade::initializeAuxiliaryLogger<EncapsulatedLogger>(mockLogger);
+    trace::Facade::initializeAuxiliaryLogger(trace::LoggerPtr(new EncapsulatedLogger(mockLogger)));
 #if GTEST_USES_POSIX_RE
     auto auxiliaryMessageMatcher = ::testing::MatchesRegex(basicLayoutRegex);
 #else

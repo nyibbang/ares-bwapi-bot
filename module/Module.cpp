@@ -51,7 +51,7 @@ namespace ares
 
 Module::Module()
 {
-    trace::Facade::initializeAuxiliaryLogger<BroodwarLogger>();
+    trace::Facade::initializeAuxiliaryLogger(trace::LoggerPtr(new BroodwarLogger));
 }
 
 void Module::onStart()

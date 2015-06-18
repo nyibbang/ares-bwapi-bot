@@ -48,6 +48,11 @@ Facade& Facade::instance()
     return instance;
 }
 
+void Facade::initializeAuxiliaryLogger(LoggerPtr auxLogger)
+{
+    instance().m_auxiliaryLogger = std::move(auxLogger);
+}
+
 void Facade::resetAuxiliaryLogger()
 {
     instance().m_auxiliaryLogger.reset();
