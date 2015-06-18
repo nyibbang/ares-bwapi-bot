@@ -33,21 +33,23 @@ class GameEventListener;
 class WorkerEventListener;
 }
 
-class AresAIModule final : public BWAPI::AIModule
-                         , public abc::Dispatcher<abc::GameEventListener>
-                         , public abc::Dispatcher<abc::WorkerEventListener>
+class Module final : public BWAPI::AIModule
+                   , public abc::Dispatcher<abc::GameEventListener>
+                   , public abc::Dispatcher<abc::WorkerEventListener>
 {
     public:
-        void onStart();
-        void onEnd(bool isWinner);
-        void onSaveGame(std::string gameName);
-        void onFrame();
-        void onSendText(std::string text);
-        void onReceiveText(BWAPI::Player player, std::string text);
-        void onPlayerLeft(BWAPI::Player player);
-        void onNukeDetect(BWAPI::Position target);
-        void onUnitCreate(BWAPI::Unit unit);
-        void onUnitMorph(BWAPI::Unit unit);
+        Module();
+
+        void onStart() override;
+        void onEnd(bool isWinner) override;
+        void onSaveGame(std::string gameName) override;
+        void onFrame() override;
+        void onSendText(std::string text) override;
+        void onReceiveText(BWAPI::Player player, std::string text) override;
+        void onPlayerLeft(BWAPI::Player player) override;
+        void onNukeDetect(BWAPI::Position target) override;
+        void onUnitCreate(BWAPI::Unit unit) override;
+        void onUnitMorph(BWAPI::Unit unit) override;
 
         void suscribe(abc::GameEventListener& listener) override;
         void unsuscribe(abc::GameEventListener& listener) override;
@@ -56,8 +58,9 @@ class AresAIModule final : public BWAPI::AIModule
         void unsuscribe(abc::WorkerEventListener& listener) override;
 
     private:
-        std::list<std::reference_wrapper<abc::GameEventListener>> m_gameListeners;
-        std::list<std::reference_wrapper<abc::WorkerEventListener>> m_workerListeners;
+        template <class Type> using RefList = std::list<std::reference_wrapper<Type>>;
+        RefList<abc::GameEventListener> m_gameListeners;
+        RefList<abc::WorkerEventListener> m_workerListeners;
 };
 
 }

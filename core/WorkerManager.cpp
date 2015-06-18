@@ -21,6 +21,7 @@
 #include "WorkerManager.h"
 #include "abc/Dispatcher.h"
 #include "abc/Commander.h"
+#include "trace/Trace.h"
 
 namespace ares
 {
@@ -40,6 +41,7 @@ WorkerManager::~WorkerManager()
 void WorkerManager::onWorkerIdle(int unitId)
 {
     m_commander.execute(CommandType::HarvestClosestMineral, unitId);
+    ARES_DEBUG() << "Sent idle worker (ID: " << unitId << ") back to minerals harvesting";
 }
 
 }
