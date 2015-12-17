@@ -28,7 +28,7 @@ endif()
 # Module library
 ################################################################################
 add_library(AresModule SHARED
-    AresAIModule.h AresAIModule.cpp
+    Module.h Module.cpp
     dll.cpp
 )
 target_include_directories(AresModule

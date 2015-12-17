@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "core/abc/EventDispatcher.h"
+#include "core/abc/Dispatcher.h"
 #include <BWAPI.h>
 #include <list>
 

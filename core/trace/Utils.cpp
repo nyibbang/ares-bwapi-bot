@@ -32,13 +32,14 @@ std::string homePath()
 {
 #ifdef ARES_MSWINDOWS
     WCHAR wpath[MAX_PATH];
-    if (SUCCEEDED(SHGetFolderPathW(0, CSIDL_PROFILE, 0, 0, wpath)))
-    {
-        std::wstring path(wpath);
-        return std::string(path.begin(), path.end());
+    if (!SUCCEEDED(SHGetFolderPathW(0, CSIDL_PROFILE, 0, 0, wpath))) {
+        return std::string();
     }
-#endif
+    std::wstring path(wpath);
+    return std::string(path.begin(), path.end());
+#else
     return std::getenv("HOME");
+#endif
 }
 
 }

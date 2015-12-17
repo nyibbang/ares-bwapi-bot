@@ -21,7 +21,8 @@
 #include "Module.h"
 #include "core/abc/GameEventListener.h"
 #include "core/abc/WorkerEventListener.h"
-#include "core/traces/Trace.h"
+#include "core/trace/Trace.h"
+#include "core/trace/Logger.h"
 #include <iostream>
 
 #define NOTIFY_LISTENERS(type, container, func, ...) \
@@ -38,7 +39,7 @@ namespace
 class BroodwarLogger final : public trace::abc::Logger
 {
     public:
-        void log(const LogContext&, const std::string& message) override
+        void log(const trace::LogContext&, const std::string& message) override
         {
             // Ignore the context, just print the message
             BWAPI::Broodwar << message << std::endl;
@@ -57,7 +58,7 @@ Module::Module()
 void Module::onStart()
 {
     // We do not care about replays
-    if (BWAPI::Broodwar->isReplay()) {
+    if (BWAPI::Broodwar->isReplay()) {
         return;
     }
 
@@ -244,7 +245,7 @@ void Module::suscribe(abc::GameEventListener& listener)
 
 void Module::unsuscribe(abc::GameEventListener& listener)
 {
-    m_gameListeners.remove_if([&listener](m_gameListeners::value_type listenRef) -> bool {
+    m_gameListeners.remove_if([&listener](decltype(m_gameListeners)::value_type listenRef) -> bool {
         return &listenRef.get() == &listener;
     });
 }
@@ -256,7 +257,7 @@ void Module::suscribe(abc::WorkerEventListener& listener)
 
 void Module::unsuscribe(abc::WorkerEventListener& listener)
 {
-    m_eventListeners.remove_if([&listener](m_eventListeners::value_type listenRef) -> bool {
+	m_workerListeners.remove_if([&listener](decltype(m_workerListeners)::value_type listenRef) -> bool {
         return &listenRef.get() == &listener;
     });
 }

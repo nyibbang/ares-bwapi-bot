@@ -18,7 +18,7 @@
  * USA
  */
 
-#include "AresAIModule.h"
+#include "Module.h"
 #include <BWAPI.h>
 
 extern "C" __declspec(dllexport) void gameInit(BWAPI::Game* game)
