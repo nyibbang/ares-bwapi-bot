@@ -68,7 +68,19 @@ void Module::onStart()
 
     NOTIFY_GAME_LISTENERS(onStart)
 
-    ARES_DEBUG() << "New game started on map " << BWAPI::Broodwar->mapName();
+#ifdef ARES_DEBUG_BUILD
+    BWAPI::Broodwar->sendText("Ares version %d.%d.%d-debug", ARES_MAJOR_VERSION,
+                              ARES_MINOR_VERSION, ARES_PATCH_VERSION);
+    BWAPI::Broodwar->registerEvent([](BWAPI::Game*){
+        BWAPI::Broodwar->drawTextScreen(BWAPI::Positions::Origin, "%cAres v%d.%d.%d",
+                                        BWAPI::Text::Red,
+                                        ARES_MAJOR_VERSION, ARES_MINOR_VERSION, ARES_PATCH_VERSION);
+        });
+#endif
+
+    ARES_DEBUG() << "AresBWAPIBot version " << ARES_MAJOR_VERSION << "." << ARES_MINOR_VERSION
+                 << "." << ARES_PATCH_VERSION;
+    ARES_DEBUG() << "New game started on map \"" << BWAPI::Broodwar->mapName() << "\"";
     ARES_DEBUG() << "Matchup is Ares (" << BWAPI::Broodwar->self()->getRace()
                  << ") vs Enemy (" << BWAPI::Broodwar->enemy()->getRace() << ")";
 }
