@@ -37,4 +37,4 @@ target_include_directories(AresModule
 target_link_libraries(AresModule
     AresCore ${BWAPI_LIBRARY}
 )
-
+install(TARGETS AresModule DESTINATION ".")

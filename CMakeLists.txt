@@ -38,6 +38,26 @@ enable_testing()
 # Debug libraries should be postfixed with a 'd'
 set(CMAKE_DEBUG_POSTFIX "d")
 
+# Find starcraft dir
+set(_PF86 "ProgramFiles(x86)")
+find_path(STARCRAFT_DIR "StarCraft.exe"
+    PATHS
+        $ENV{ProgramFiles}
+        $ENV{${_PF86}}
+        $ENV{ProgramW6432}
+        $ENV{BWAPI_DIR}
+        $ENV{BWAPIDIR}
+        ${BWAPI_DIR}
+        ${BWAPIDIR}
+    PATH_SUFFIXES "StarCraft"
+)
+
+# Install path
+if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set (CMAKE_INSTALL_PREFIX "${STARCRAFT_DIR}/bwapi-data/AI" CACHE
+        PATH "default install path" FORCE)
+endif()
+
 ################################################################################
 # BWAPI library lookup
 ################################################################################
