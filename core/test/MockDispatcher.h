@@ -25,6 +25,8 @@
 
 namespace ares
 {
+namespace core
+{
 namespace test
 {
 
@@ -36,5 +38,6 @@ class MockDispatcher : public abc::Dispatcher<Listener>
         MOCK_METHOD1_T(unsuscribe, void(Listener& listener));
 };
 
+}
 }
 }

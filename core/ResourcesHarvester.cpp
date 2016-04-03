@@ -25,8 +25,11 @@
 
 namespace ares
 {
+namespace core
+{
 
-ResourcesHarvester::ResourcesHarvester(abc::Dispatcher<abc::WorkerEventListener>& dispatcher, abc::Commander& commander)
+ResourcesHarvester::ResourcesHarvester(abc::Dispatcher<abc::WorkerEventListener>& dispatcher,
+                                       abc::Commander& commander)
     : m_dispatcher(dispatcher)
     , m_commander(commander)
 {
@@ -44,4 +47,5 @@ void ResourcesHarvester::onWorkerIdle(int unitId)
     ARES_DEBUG() << "Sent idle worker (ID: " << unitId << ") back to minerals harvesting";
 }
 
+}
 }

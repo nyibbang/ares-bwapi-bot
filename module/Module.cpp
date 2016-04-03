@@ -21,6 +21,7 @@
 #include "Module.h"
 #include "core/abc/GameEventListener.h"
 #include "core/abc/WorkerEventListener.h"
+#include "core/abc/Commander.h"
 #include "core/trace/Trace.h"
 #include "core/trace/Logger.h"
 #include <iostream>
@@ -30,9 +31,9 @@
         listener.func(__VA_ARGS__); \
     }
 #define NOTIFY_GAME_LISTENERS(func, ...) \
-    NOTIFY_LISTENERS(abc::GameEventListener, m_gameListeners, func, __VA_ARGS__)
+    NOTIFY_LISTENERS(core::abc::GameEventListener, m_gameListeners, func, __VA_ARGS__)
 #define NOTIFY_WORKER_LISTENERS(func, ...) \
-    NOTIFY_LISTENERS(abc::WorkerEventListener, m_workerListeners, func, __VA_ARGS__)
+    NOTIFY_LISTENERS(core::abc::WorkerEventListener, m_workerListeners, func, __VA_ARGS__)
 
 namespace
 {
@@ -48,6 +49,8 @@ class BroodwarLogger final : public trace::abc::Logger
 }
 
 namespace ares
+{
+namespace module
 {
 
 Module::Module()
@@ -258,28 +261,29 @@ void Module::onUnitMorph(BWAPI::Unit unit)
     ARES_DEBUG() << playerName << " morphed unit of type " << unit->getType();
 }
 
-void Module::suscribe(abc::GameEventListener& listener)
+void Module::suscribe(core::abc::GameEventListener& listener)
 {
     m_gameListeners.emplace_back(listener);
 }
 
-void Module::unsuscribe(abc::GameEventListener& listener)
+void Module::unsuscribe(core::abc::GameEventListener& listener)
 {
     m_gameListeners.remove_if([&listener](decltype(m_gameListeners)::value_type listenRef) -> bool {
         return &listenRef.get() == &listener;
     });
 }
 
-void Module::suscribe(abc::WorkerEventListener& listener)
+void Module::suscribe(core::abc::WorkerEventListener& listener)
 {
     m_workerListeners.emplace_back(listener);
 }
 
-void Module::unsuscribe(abc::WorkerEventListener& listener)
+void Module::unsuscribe(core::abc::WorkerEventListener& listener)
 {
 	m_workerListeners.remove_if([&listener](decltype(m_workerListeners)::value_type listenRef) -> bool {
         return &listenRef.get() == &listener;
     });
 }
 
+}
 }

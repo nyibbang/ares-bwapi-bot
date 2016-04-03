@@ -28,10 +28,10 @@ using namespace ::testing;
 
 TEST(ResourcesHarvester, ResourcesHarvesterSendsIdleWorkersToHarvestMinerals)
 {
-    test::MockDispatcher<abc::WorkerEventListener> dispatcher;
-    test::MockCommander commander;
+    core::test::MockDispatcher<core::abc::WorkerEventListener> dispatcher;
+    core::test::MockCommander commander;
     EXPECT_CALL(dispatcher, suscribe(_));
-    ResourcesHarvester rsHrvst(dispatcher, commander);
+    core::ResourcesHarvester rsHrvst(dispatcher, commander);
     const int unitId = 42;
     EXPECT_CALL(commander, execute(CommandType::HarvestClosestMineral, unitId));
     rsHrvst.onWorkerIdle(unitId);

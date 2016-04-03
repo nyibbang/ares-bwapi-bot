@@ -24,6 +24,8 @@
 
 namespace ares
 {
+namespace core
+{
 
 namespace abc
 {
@@ -45,4 +47,5 @@ class ResourcesHarvester final : public abc::WorkerEventListener
         abc::Commander& m_commander;
 };
 
+}
 }

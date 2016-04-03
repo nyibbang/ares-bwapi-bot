@@ -22,6 +22,8 @@
 
 namespace ares
 {
+namespace core
+{
 namespace abc
 {
 
@@ -36,4 +38,4 @@ class Dispatcher
 
 }
 }
-
+}

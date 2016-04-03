@@ -25,6 +25,8 @@
 
 namespace ares
 {
+namespace core
+{
 namespace test
 {
 
@@ -34,5 +36,6 @@ class MockCommander : public abc::Commander
         MOCK_METHOD2(execute, void(CommandType type, int unitId));
 };
 
+}
 }
 }

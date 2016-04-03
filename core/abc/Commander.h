@@ -28,6 +28,9 @@ enum class CommandType
     HarvestClosestMineral
 };
 
+namespace core
+{
+
 namespace abc
 {
 
@@ -38,5 +41,6 @@ class Commander
         virtual void execute(CommandType type, int unitId) = 0;
 };
 
+}
 }
 }

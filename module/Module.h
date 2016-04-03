@@ -27,15 +27,22 @@
 namespace ares
 {
 
+namespace core
+{
 namespace abc
 {
 class GameEventListener;
 class WorkerEventListener;
 }
+}
+
+namespace module
+{
+
 
 class Module final : public BWAPI::AIModule
-                   , public abc::Dispatcher<abc::GameEventListener>
-                   , public abc::Dispatcher<abc::WorkerEventListener>
+                   , public core::abc::Dispatcher<core::abc::GameEventListener>
+                   , public core::abc::Dispatcher<core::abc::WorkerEventListener>
 {
     public:
         Module();
@@ -51,16 +58,17 @@ class Module final : public BWAPI::AIModule
         void onUnitCreate(BWAPI::Unit unit) override;
         void onUnitMorph(BWAPI::Unit unit) override;
 
-        void suscribe(abc::GameEventListener& listener) override;
-        void unsuscribe(abc::GameEventListener& listener) override;
+        void suscribe(core::abc::GameEventListener& listener) override;
+        void unsuscribe(core::abc::GameEventListener& listener) override;
 
-        void suscribe(abc::WorkerEventListener& listener) override;
-        void unsuscribe(abc::WorkerEventListener& listener) override;
+        void suscribe(core::abc::WorkerEventListener& listener) override;
+        void unsuscribe(core::abc::WorkerEventListener& listener) override;
 
     private:
         template <class Type> using RefList = std::list<std::reference_wrapper<Type>>;
-        RefList<abc::GameEventListener> m_gameListeners;
-        RefList<abc::WorkerEventListener> m_workerListeners;
+        RefList<core::abc::GameEventListener> m_gameListeners;
+        RefList<core::abc::WorkerEventListener> m_workerListeners;
 };
 
+}
 }

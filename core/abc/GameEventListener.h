@@ -22,6 +22,8 @@
 
 namespace ares
 {
+namespace core
+{
 namespace abc
 {
 
@@ -41,4 +43,4 @@ inline GameEventListener::~GameEventListener() {}
 
 }
 }
-
+}

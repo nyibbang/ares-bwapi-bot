@@ -22,6 +22,8 @@
 
 namespace ares
 {
+namespace core
+{
 namespace abc
 {
 
@@ -32,5 +34,6 @@ class WorkerEventListener
         virtual void onWorkerIdle(int unitId) = 0;
 };
 
+}
 }
 }
