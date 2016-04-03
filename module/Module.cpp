@@ -27,8 +27,8 @@
 #include <iostream>
 
 #define NOTIFY_LISTENERS(type, container, func, ...) \
-    for (type& listener : container) { \
-        listener.func(__VA_ARGS__); \
+    for (type* listener : container) { \
+        listener->func(__VA_ARGS__); \
     }
 #define NOTIFY_GAME_LISTENERS(func, ...) \
     NOTIFY_LISTENERS(core::abc::GameEventListener, m_gameListeners, func, __VA_ARGS__)
@@ -279,26 +279,22 @@ void Module::onUnitMorph(BWAPI::Unit unit)
 
 void Module::suscribe(core::abc::GameEventListener& listener)
 {
-    m_gameListeners.emplace_back(listener);
+    m_gameListeners.push_front(&listener);
 }
 
 void Module::unsuscribe(core::abc::GameEventListener& listener)
 {
-    m_gameListeners.remove_if([&listener](decltype(m_gameListeners)::value_type listenRef) -> bool {
-        return &listenRef.get() == &listener;
-    });
+    m_gameListeners.remove(&listener);
 }
 
 void Module::suscribe(core::abc::WorkerEventListener& listener)
 {
-    m_workerListeners.emplace_back(listener);
+    m_workerListeners.push_front(&listener);
 }
 
 void Module::unsuscribe(core::abc::WorkerEventListener& listener)
 {
-	m_workerListeners.remove_if([&listener](decltype(m_workerListeners)::value_type listenRef) -> bool {
-        return &listenRef.get() == &listener;
-    });
+    m_workerListeners.remove(&listener);
 }
 
 }

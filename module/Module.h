@@ -23,7 +23,7 @@
 #include "core/abc/Commander.h"
 #include "core/abc/Dispatcher.h"
 #include <BWAPI.h>
-#include <list>
+#include <forward_list>
 #include <memory>
 
 namespace ares
@@ -73,11 +73,15 @@ class Module final : public BWAPI::AIModule
         void unsuscribe(core::abc::WorkerEventListener& listener) override;
 
     private:
+        // It is important that the listeners lists are declared before objects that might be
+        // listeners registered in these lists, because they would unsuscribe from the lists after
+        // they (the lists) have been destroyed. By declaring them first, we ensure that the lists
+        // will be destroyed after the listeners.
+        template <class Type> using PtrList = std::forward_list<Type*>;
+        PtrList<core::abc::GameEventListener> m_gameListeners;
+        PtrList<core::abc::WorkerEventListener> m_workerListeners;
         std::unique_ptr<Commander> m_commander;
         std::unique_ptr<core::ResourcesHarvester> m_rscHvst;
-        template <class Type> using RefList = std::list<std::reference_wrapper<Type>>;
-        RefList<core::abc::GameEventListener> m_gameListeners;
-        RefList<core::abc::WorkerEventListener> m_workerListeners;
 };
 
 }
