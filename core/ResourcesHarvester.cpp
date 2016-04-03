@@ -18,7 +18,7 @@
  * USA
  */
 
-#include "WorkerManager.h"
+#include "ResourcesHarvester.h"
 #include "abc/Dispatcher.h"
 #include "abc/Commander.h"
 #include "trace/Trace.h"

@@ -17,11 +17,11 @@
 # USA
 
 ################################################################################
-# CoreTest executable
+# CoreTest executable
 ################################################################################
 add_executable(AresCoreTest
     TestMain.cpp
-    WorkerManagerTest.cpp
+    ResourcesHarvesterTest.cpp
 )
 add_test(NAME AresCoreTest COMMAND AresCoreTest)
 

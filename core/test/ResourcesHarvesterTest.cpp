@@ -18,7 +18,7 @@
  * USA
  */
 
-#include "WorkerManager.h"
+#include "ResourcesHarvester.h"
 #include "MockDispatcher.h"
 #include "MockCommander.h"
 #include <gtest/gtest.h>

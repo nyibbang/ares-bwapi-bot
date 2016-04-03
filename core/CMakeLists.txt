@@ -17,13 +17,13 @@
 # USA
 
 ################################################################################
-# Core library
+# Core library
 ################################################################################
 add_library(AresCore STATIC
     abc/GameEventListener.h
     abc/Dispatcher.h
     abc/Commander.h
-    WorkerManager.h WorkerManager.cpp
+    ResourcesHarvester.h ResourcesHarvester.cpp
 )
 target_include_directories(AresCore
     PUBLIC
