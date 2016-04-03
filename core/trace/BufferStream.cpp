@@ -34,7 +34,7 @@ BufferStream::~BufferStream()
     try {
         m_logger.log(m_context, m_buffer.str() + '\n');
     }
-    catch (const std::exception& ex) {
+    catch (const std::exception& /*ex*/) {
         // Maybe warn the user of the error in some way, to do later
     }
 }
