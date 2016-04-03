@@ -31,12 +31,12 @@ template <class> class Dispatcher;
 class Commander;
 }
 
-class WorkerManager final : public abc::WorkerEventListener
+class ResourcesHarvester final : public abc::WorkerEventListener
 {
     public:
-        WorkerManager(abc::Dispatcher<abc::WorkerEventListener>& dispatcher,
+        ResourcesHarvester(abc::Dispatcher<abc::WorkerEventListener>& dispatcher,
                       abc::Commander& commander);
-        ~WorkerManager();
+        ~ResourcesHarvester();
 
         void onWorkerIdle(int unitId) override;
 

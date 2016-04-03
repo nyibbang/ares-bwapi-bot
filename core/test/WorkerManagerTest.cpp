@@ -26,14 +26,14 @@
 using namespace ares;
 using namespace ::testing;
 
-TEST(WorkerManager, WorkerManager_sends_idle_workers_to_harvest_minerals)
+TEST(ResourcesHarvester, ResourcesHarvesterSendsIdleWorkersToHarvestMinerals)
 {
     test::MockDispatcher<abc::WorkerEventListener> dispatcher;
     test::MockCommander commander;
     EXPECT_CALL(dispatcher, suscribe(_));
-    WorkerManager manager(dispatcher, commander);
+    ResourcesHarvester rsHrvst(dispatcher, commander);
     const int unitId = 42;
     EXPECT_CALL(commander, execute(CommandType::HarvestClosestMineral, unitId));
-    manager.onWorkerIdle(unitId);
-    EXPECT_CALL(dispatcher, unsuscribe(Ref(manager)));
+    rsHrvst.onWorkerIdle(unitId);
+    EXPECT_CALL(dispatcher, unsuscribe(Ref(rsHrvst)));
 }

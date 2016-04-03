@@ -26,19 +26,19 @@
 namespace ares
 {
 
-WorkerManager::WorkerManager(abc::Dispatcher<abc::WorkerEventListener>& dispatcher, abc::Commander& commander)
+ResourcesHarvester::ResourcesHarvester(abc::Dispatcher<abc::WorkerEventListener>& dispatcher, abc::Commander& commander)
     : m_dispatcher(dispatcher)
     , m_commander(commander)
 {
     m_dispatcher.suscribe(*this);
 }
 
-WorkerManager::~WorkerManager()
+ResourcesHarvester::~ResourcesHarvester()
 {
     m_dispatcher.unsuscribe(*this);
 }
 
-void WorkerManager::onWorkerIdle(int unitId)
+void ResourcesHarvester::onWorkerIdle(int unitId)
 {
     m_commander.execute(CommandType::HarvestClosestMineral, unitId);
     ARES_DEBUG() << "Sent idle worker (ID: " << unitId << ") back to minerals harvesting";
