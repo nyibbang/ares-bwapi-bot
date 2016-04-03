@@ -22,14 +22,13 @@
 
 namespace ares
 {
+namespace core
+{
 
 enum class CommandType
 {
     HarvestClosestMineral
 };
-
-namespace core
-{
 
 namespace abc
 {
