@@ -210,14 +210,16 @@ void Module::onSendText(std::string text)
 
 void Module::onReceiveText(BWAPI::Player player, std::string text)
 {
-    const std::string message = player->getName() + " said \"" + text + "\"";
+    const std::string playerName = (player == BWAPI::Broodwar->self() ?
+                                        "Ares" : player->getName());
+    const std::string message = playerName + " said \"" + text + "\"";
     ARES_INFO() << message;
     BWAPI::Broodwar << message << std::endl;
 }
 
 void Module::onPlayerLeft(BWAPI::Player player)
 {
-    const std::string message = "Player " + player->getName() + " has left the game";
+    const std::string message = player->getName() + " has left the game";
     ARES_INFO() << message;
     BWAPI::Broodwar << message << std::endl;
 }
@@ -238,7 +240,10 @@ void Module::onUnitCreate(BWAPI::Unit unit)
     if (BWAPI::Broodwar->isReplay()) {
         return;
     }
-    ARES_DEBUG() << "Player " << unit->getPlayer()->getName() << " created unit of type " << unit->getType();
+    BWAPI::Player player = unit->getPlayer();
+    const std::string playerName = (player == BWAPI::Broodwar->self() ?
+                                        "Ares" : player->getName());
+    ARES_DEBUG() << playerName << " created unit of type " << unit->getType();
 }
 
 void Module::onUnitMorph(BWAPI::Unit unit)
@@ -247,7 +252,10 @@ void Module::onUnitMorph(BWAPI::Unit unit)
     if (BWAPI::Broodwar->isReplay()) {
         return;
     }
-    ARES_DEBUG() << "Player " << unit->getPlayer()->getName() << " morphed unit of type " << unit->getType();
+    BWAPI::Player player = unit->getPlayer();
+    const std::string playerName = (player == BWAPI::Broodwar->self() ?
+                                        "Ares" : player->getName());
+    ARES_DEBUG() << playerName << " morphed unit of type " << unit->getType();
 }
 
 void Module::suscribe(abc::GameEventListener& listener)
