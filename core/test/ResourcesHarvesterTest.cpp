@@ -23,15 +23,15 @@
 #include "MockCommander.h"
 #include <gtest/gtest.h>
 
-using namespace ares;
+using namespace ares::core;
 using namespace ::testing;
 
 TEST(ResourcesHarvester, ResourcesHarvesterSendsIdleWorkersToHarvestMinerals)
 {
-    core::test::MockDispatcher<core::abc::WorkerEventListener> dispatcher;
-    core::test::MockCommander commander;
+    test::MockDispatcher<abc::WorkerEventListener> dispatcher;
+    test::MockCommander commander;
     EXPECT_CALL(dispatcher, suscribe(_));
-    core::ResourcesHarvester rsHrvst(dispatcher, commander);
+    ResourcesHarvester rsHrvst(dispatcher, commander);
     const int unitId = 42;
     EXPECT_CALL(commander, execute(CommandType::HarvestClosestMineral, unitId));
     rsHrvst.onWorkerIdle(unitId);
