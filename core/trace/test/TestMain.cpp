@@ -59,7 +59,7 @@ decltype(ARES_INFO()) stream(int type)
 void loopTrace(int type)
 {
     auto&& threadId = std::this_thread::get_id();
-    for (int i = 1; i <= TRACES_PER_THREAD; ++i)
+    for (auto i = 1u; i <= TRACES_PER_THREAD; ++i)
     {
         stream(type) << boost::format(TEST_MESSAGE_TEMPLATE) % i % threadId;
     }
@@ -106,7 +106,7 @@ TEST(CoreTraceTest, TracesLayoutAuxiliaryLoggerAndThreadSafe)
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> dis(1, 2);
-    for (int i = 0; i < THREADS_COUNT; ++i) {
+    for (auto i = 0u; i < THREADS_COUNT; ++i) {
         int type = 0;
         // The first INFO_THREADS_COUNT threads will log only info traces, the rest will choose between warning and error
         if (i >= INFO_THREADS_COUNT) {
