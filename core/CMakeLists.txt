@@ -21,6 +21,7 @@
 ################################################################################
 add_library(AresCore STATIC
     abc/GameEventListener.h
+    abc/WorkerEventListener.h
     abc/Dispatcher.h
     abc/Commander.h
     ResourcesHarvester.h ResourcesHarvester.cpp
