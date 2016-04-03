@@ -20,9 +20,11 @@
 
 #pragma once
 
+#include "core/abc/Commander.h"
 #include "core/abc/Dispatcher.h"
 #include <BWAPI.h>
 #include <list>
+#include <memory>
 
 namespace ares
 {
@@ -34,11 +36,17 @@ namespace abc
 class GameEventListener;
 class WorkerEventListener;
 }
+class ResourcesHarvester;
 }
 
 namespace module
 {
 
+class Commander final : public ares::core::abc::Commander
+{
+    private:
+        void execute(ares::core::CommandType type, int unitId) override;
+};
 
 class Module final : public BWAPI::AIModule
                    , public core::abc::Dispatcher<core::abc::GameEventListener>
@@ -65,6 +73,8 @@ class Module final : public BWAPI::AIModule
         void unsuscribe(core::abc::WorkerEventListener& listener) override;
 
     private:
+        std::unique_ptr<Commander> m_commander;
+        std::unique_ptr<core::ResourcesHarvester> m_rscHvst;
         template <class Type> using RefList = std::list<std::reference_wrapper<Type>>;
         RefList<core::abc::GameEventListener> m_gameListeners;
         RefList<core::abc::WorkerEventListener> m_workerListeners;

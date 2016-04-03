@@ -19,9 +19,9 @@
  */
 
 #include "Module.h"
+#include "core/ResourcesHarvester.h"
 #include "core/abc/GameEventListener.h"
 #include "core/abc/WorkerEventListener.h"
-#include "core/abc/Commander.h"
 #include "core/trace/Trace.h"
 #include "core/trace/Logger.h"
 #include <iostream>
@@ -53,6 +53,18 @@ namespace ares
 namespace module
 {
 
+void Commander::execute(ares::core::CommandType type, int unitId)
+{
+    using ares::core::CommandType;
+    BWAPI::Unit unit = BWAPI::Broodwar->getUnit(unitId);
+    switch (type)
+    {
+        case CommandType::HarvestClosestMineral:
+            unit->gather(unit->getClosestUnit(BWAPI::Filter::IsMineralField));
+            break;
+    }
+}
+
 Module::Module()
 {
     trace::Facade::initializeAuxiliaryLogger(trace::LoggerPtr(new BroodwarLogger));
@@ -60,6 +72,10 @@ Module::Module()
 
 void Module::onStart()
 {
+    // Initialize members
+    m_commander.reset(new Commander);
+    m_rscHvst.reset(new core::ResourcesHarvester(*this, *m_commander));
+
     // We do not care about replays
     if (BWAPI::Broodwar->isReplay()) {
         return;
