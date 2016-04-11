@@ -59,8 +59,12 @@ if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif()
 
 ################################################################################
-# BWAPI library lookup
+# External packages
 ################################################################################
+set(CMAKE_THREAD_PREFER_PTHREAD true)
+find_package(Threads REQUIRED)
+set(Boost_USE_MULTITHREADED ON)
+find_package(Boost 1.57 REQUIRED)
 find_package(BWAPI)
 
 ################################################################################
@@ -75,4 +79,3 @@ include_directories(${PROJECT_BINARY_DIR} ${PROJECT_SOURCE_DIR})
 add_subdirectory(third_party)
 add_subdirectory(core)
 add_subdirectory(module)
-
