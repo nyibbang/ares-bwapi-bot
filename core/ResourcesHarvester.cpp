@@ -21,7 +21,7 @@
 #include "ResourcesHarvester.h"
 #include "Dispatcher.h"
 #include "Commander.h"
-#include "trace/Trace.h"
+#include "log/Log.h"
 
 namespace ares
 {

@@ -17,31 +17,18 @@
 # USA
 
 ################################################################################
-# CoreTest executable
+# Log library
 ################################################################################
-add_executable(AresCoreTraceTest
-    TestMain.cpp
+add_library(AresCoreLog STATIC
+    Log.h LogContext.h
+    Facade.h Facade.cpp
+    BufferStream.h BufferStream.cpp
+    Layout.h Layout.cpp
+    Logger.h Logger.cpp
+    Utils.h Utils.cpp
 )
-add_test(NAME AresCoreTraceTest COMMAND AresCoreTraceTest)
 
-if(CMAKE_USE_PTHREADS_INIT)
-    get_target_property(_old_flags AresCoreTraceTest LINK_FLAGS)
-    set(_new_flags "-Wl,--no-as-needed")
-    if(_old_flags)
-        set(_new_flags "${_old_flags} ${_new_flags}")
-    endif()
-    set_target_properties(AresCoreTraceTest PROPERTIES LINK_FLAGS "${_new_flags}")
-    unset(_new_flags)
-endif()
-target_include_directories(AresCoreTraceTest
+target_include_directories(AresCoreLog
     PUBLIC
-        ${gmock_SOURCE_DIR}/include
-        ${gtest_SOURCE_DIR}/include
-        ${Boost_INCLUDE_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}
 )
-target_link_libraries(AresCoreTraceTest
-    AresCoreTrace
-    gmock_main
-    ${CMAKE_THREAD_LIBS_INIT}
-)
-

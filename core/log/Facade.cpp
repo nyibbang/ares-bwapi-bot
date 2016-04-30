@@ -24,7 +24,11 @@
 #include "Logger.h"
 #include "Utils.h"
 
-namespace trace
+namespace ares
+{
+namespace core
+{
+namespace log
 {
 
 Facade::Facade()
@@ -81,4 +85,5 @@ BufferStream::pointer Facade::error(const std::string& file, int line)
 }
 
 }
-
+}
+}

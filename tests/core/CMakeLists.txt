@@ -24,7 +24,7 @@ add_test(NAME AresCoreTest COMMAND AresCoreTest)
 
 target_compile_definitions(AresCoreTest
     PUBLIC
-        ARES_DISABLE_TRACE
+        ARES_DISABLE_LOG
 )
 target_include_directories(AresCoreTest
     PUBLIC
@@ -36,4 +36,4 @@ target_link_libraries(AresCoreTest
     gmock_main
 )
 
-add_subdirectory(trace)
+add_subdirectory(LOG)

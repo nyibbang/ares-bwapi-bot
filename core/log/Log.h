@@ -23,7 +23,7 @@
 #include "config.h"
 #include <iostream>
 
-#ifdef ARES_DISABLE_TRACE
+#ifdef ARES_DISABLE_LOG
     #define ARES_NOOP_STREAM if (false) std::cout
     #define ARES_DEBUG()     ARES_NOOP_STREAM
     #define ARES_INFO()      ARES_NOOP_STREAM
@@ -32,12 +32,12 @@
 #else
     #include "Facade.h"
     #ifdef ARES_DEBUG_BUILD
-        #define ARES_DEBUG()   trace::Facade::debug(__FILE__, __LINE__)
+        #define ARES_DEBUG()   ares::core::log::Facade::debug(__FILE__, __LINE__)
     #else
         #define ARES_DEBUG()   if(false) std::cout
     #endif
-    #define ARES_INFO()    trace::Facade::info(__FILE__, __LINE__)
-    #define ARES_WARNING() trace::Facade::warning(__FILE__, __LINE__)
-    #define ARES_ERROR()   trace::Facade::error(__FILE__, __LINE__)
+    #define ARES_INFO()    ares::core::log::Facade::info(__FILE__, __LINE__)
+    #define ARES_WARNING() ares::core::log::Facade::warning(__FILE__, __LINE__)
+    #define ARES_ERROR()   ares::core::log::Facade::error(__FILE__, __LINE__)
 #endif
 

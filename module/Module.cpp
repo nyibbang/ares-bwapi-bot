@@ -22,8 +22,8 @@
 #include "core/ResourcesHarvester.h"
 #include "core/GameEventListener.h"
 #include "core/WorkerEventListener.h"
-#include "core/trace/Trace.h"
-#include "core/trace/Logger.h"
+#include "core/log/Log.h"
+#include "core/log/Logger.h"
 #include <iostream>
 
 #define NOTIFY_LISTENERS(type, container, func, ...) \
@@ -37,10 +37,12 @@
 
 namespace
 {
-class BroodwarLogger final : public trace::abc::Logger
+using namespace ares::core;
+
+class BroodwarLogger final : log::abc::Logger
 {
     public:
-        void log(const trace::LogContext&, const std::string& message) override
+        void log(const log::LogContext&, const std::string& message) override
         {
             // Ignore the context, just print the message
             BWAPI::Broodwar << message << std::endl;
@@ -67,7 +69,7 @@ void Commander::execute(ares::core::CommandType type, int unitId)
 
 Module::Module()
 {
-    trace::Facade::initializeAuxiliaryLogger(trace::LoggerPtr(new BroodwarLogger));
+    log::Facade::initializeAuxiliaryLogger(log::LoggerPtr(new BroodwarLogger));
 }
 
 void Module::onStart()

@@ -24,10 +24,10 @@
 #include <chrono>
 #include <ctime>
 
-namespace threading
+namespace
 {
 
-std::tm localtime(const std::time_t& time)
+std::tm threading_localtime(const std::time_t& time)
 {
     std::tm result;
 #ifdef ARES_MSWINDOWS
@@ -38,15 +38,10 @@ std::tm localtime(const std::time_t& time)
     return result;
 }
 
-}
-
-namespace
-{
-
 std::string dateTime()
 {
     using sc = std::chrono::system_clock;
-    auto nowTm = threading::localtime(sc::to_time_t(sc::now()));
+    auto nowTm = threading_localtime(sc::to_time_t(sc::now()));
     char timeStr[20];
     std::strftime(timeStr, sizeof(timeStr), "%Y-%m-%d %X", &nowTm);
     return timeStr;
@@ -54,7 +49,11 @@ std::string dateTime()
 
 }
 
-namespace trace
+namespace ares
+{
+namespace core
+{
+namespace log
 {
 
 std::string CompleteLayout::format(const LogContext& context, const std::string& message) const
@@ -69,4 +68,5 @@ std::string BasicLayout::format(const LogContext& context, const std::string& me
 }
 
 }
-
+}
+}

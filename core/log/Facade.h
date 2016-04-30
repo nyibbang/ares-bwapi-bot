@@ -25,7 +25,12 @@
 #include <memory>
 #include <fstream>
 
-namespace trace
+
+namespace ares
+{
+namespace core
+{
+namespace log
 {
 
 namespace abc
@@ -68,4 +73,5 @@ class Facade final
 };
 
 }
-
+}
+}

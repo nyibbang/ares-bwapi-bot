@@ -21,7 +21,11 @@
 #include "BufferStream.h"
 #include "Logger.h"
 
-namespace trace
+namespace ares
+{
+namespace core
+{
+namespace log
 {
 
 BufferStream::BufferStream(abc::Logger& logger, LogContext&& context)
@@ -56,4 +60,5 @@ BufferStream::pointer BufferStreamFactory::create(LogContext&& context) const
 }
 
 }
-
+}
+}

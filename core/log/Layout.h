@@ -22,7 +22,12 @@
 
 #include <string>
 
-namespace trace
+
+namespace ares
+{
+namespace core
+{
+namespace log
 {
 
 struct LogContext;
@@ -51,4 +56,6 @@ class BasicLayout final : public abc::Layout
         std::string format(const LogContext& context, const std::string& message) const override;
 };
 
+}
+}
 }

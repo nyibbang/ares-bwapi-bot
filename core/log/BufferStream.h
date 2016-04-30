@@ -24,7 +24,11 @@
 #include <memory>
 #include <sstream>
 
-namespace trace
+namespace ares
+{
+namespace core
+{
+namespace log
 {
 
 namespace abc
@@ -70,4 +74,5 @@ class BufferStreamFactory final
 };
 
 }
-
+}
+}

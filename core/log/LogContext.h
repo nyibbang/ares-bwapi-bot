@@ -22,7 +22,11 @@
 
 #include <string>
 
-namespace trace
+namespace ares
+{
+namespace core
+{
+namespace log
 {
 
 struct LogContext
@@ -33,4 +37,5 @@ struct LogContext
 };
 
 }
-
+}
+}

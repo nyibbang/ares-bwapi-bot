@@ -23,7 +23,12 @@
 #include <ostream>
 #include <memory>
 
-namespace trace
+
+namespace ares
+{
+namespace core
+{
+namespace log
 {
 
 struct LogContext;
@@ -85,4 +90,5 @@ class LayoutLogger final : public abc::Logger
 };
 
 }
-
+}
+}

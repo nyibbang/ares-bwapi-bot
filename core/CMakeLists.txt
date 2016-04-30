@@ -30,6 +30,6 @@ target_include_directories(AresCore
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
-target_link_libraries(AresCore AresCoreTrace)
+target_link_libraries(AresCore AresCoreLog)
 
-add_subdirectory(trace)
+add_subdirectory(log)

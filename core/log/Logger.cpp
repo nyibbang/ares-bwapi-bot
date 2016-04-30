@@ -22,7 +22,11 @@
 #include "Layout.h"
 #include <mutex>
 
-namespace trace
+namespace ares
+{
+namespace core
+{
+namespace log
 {
 
 OstreamLogger::OstreamLogger(std::ostream& os)
@@ -72,4 +76,5 @@ void LayoutLogger::log(const LogContext& context, const std::string& message)
 }
 
 }
-
+}
+}
