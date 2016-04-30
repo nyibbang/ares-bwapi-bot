@@ -32,9 +32,4 @@ target_include_directories(AresCore
 )
 target_link_libraries(AresCore AresCoreTrace)
 
-################################################################################
-# Subdirectories
-################################################################################
 add_subdirectory(trace)
-add_subdirectory(test)
-

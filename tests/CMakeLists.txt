@@ -1,5 +1,5 @@
 # AresBWAPIBot : A bot for SC:BW using BWAPI library;
-# Copyright (C) 2015 Vincent PALANCHER; Florian LEMEASLE
+# Copyright (C) 2015-2016 Vincent PALANCHER; Florian LEMEASLE
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -16,26 +16,4 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 # USA
 
-################################################################################
-# CoreTest executable
-################################################################################
-add_executable(AresCoreTest
-    TestMain.cpp
-    ResourcesHarvesterTest.cpp
-)
-add_test(NAME AresCoreTest COMMAND AresCoreTest)
-
-target_compile_definitions(AresCoreTest
-    PUBLIC
-        ARES_DISABLE_TRACE
-)
-target_include_directories(AresCoreTest
-    PUBLIC
-        ${gmock_SOURCE_DIR}/include
-        ${gtest_SOURCE_DIR}/include
-)
-target_link_libraries(AresCoreTest
-    AresCore
-    gmock_main
-)
-
+add_subdirectory(core)

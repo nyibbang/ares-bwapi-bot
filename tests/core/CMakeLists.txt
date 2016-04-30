@@ -16,19 +16,24 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 # USA
 
-################################################################################
-# Trace library
-################################################################################
-add_library(AresCoreTrace STATIC
-    Trace.h LogContext.h
-    Facade.h Facade.cpp
-    BufferStream.h BufferStream.cpp
-    Layout.h Layout.cpp
-    Logger.h Logger.cpp
-    Utils.h Utils.cpp
+add_executable(AresCoreTest
+    TestMain.cpp
+    ResourcesHarvesterTest.cpp
+)
+add_test(NAME AresCoreTest COMMAND AresCoreTest)
+
+target_compile_definitions(AresCoreTest
+    PUBLIC
+        ARES_DISABLE_TRACE
+)
+target_include_directories(AresCoreTest
+    PUBLIC
+        ${gmock_SOURCE_DIR}/include
+        ${gtest_SOURCE_DIR}/include
+)
+target_link_libraries(AresCoreTest
+    AresCore
+    gmock_main
 )
 
-target_include_directories(AresCoreTrace
-    PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}
-)
+add_subdirectory(trace)
