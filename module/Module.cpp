@@ -19,11 +19,14 @@
  */
 
 #include "Module.h"
+#include "BroodwarLogger.h"
 #include "core/ResourcesHarvester.h"
 #include "core/GameEventListener.h"
 #include "core/WorkerEventListener.h"
 #include "core/log/Log.h"
-#include "core/log/Logger.h"
+#include <BWAPI/Game.h>
+#include <BWAPI/Player.h>
+#include <BWAPI/Unitset.h>
 #include <iostream>
 
 #define NOTIFY_LISTENERS(type, container, func, ...) \
@@ -35,41 +38,14 @@
 #define NOTIFY_WORKER_LISTENERS(func, ...) \
     NOTIFY_LISTENERS(core::abc::WorkerEventListener, m_workerListeners, func, __VA_ARGS__)
 
-namespace
-{
-using namespace ares::core;
-
-class BroodwarLogger final : log::abc::Logger
-{
-    public:
-        void log(const log::LogContext&, const std::string& message) override
-        {
-            // Ignore the context, just print the message
-            BWAPI::Broodwar << message << std::endl;
-        }
-};
-}
-
 namespace ares
 {
 namespace module
 {
 
-void Commander::execute(ares::core::CommandType type, int unitId)
-{
-    using ares::core::CommandType;
-    BWAPI::Unit unit = BWAPI::Broodwar->getUnit(unitId);
-    switch (type)
-    {
-        case CommandType::HarvestClosestMineral:
-            unit->gather(unit->getClosestUnit(BWAPI::Filter::IsMineralField));
-            break;
-    }
-}
-
 Module::Module()
 {
-    log::Facade::initializeAuxiliaryLogger(log::LoggerPtr(new BroodwarLogger));
+    core::log::Facade::initializeAuxiliaryLogger(core::log::LoggerPtr(new BroodwarLogger));
 }
 
 void Module::onStart()

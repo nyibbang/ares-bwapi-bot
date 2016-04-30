@@ -20,9 +20,9 @@
 
 #pragma once
 
-#include "core/Commander.h"
+#include "Commander.h"
 #include "core/Dispatcher.h"
-#include <BWAPI.h>
+#include <BWAPI/AIModule.h>
 #include <forward_list>
 #include <memory>
 
@@ -41,12 +41,6 @@ class ResourcesHarvester;
 
 namespace module
 {
-
-class Commander final : public ares::core::abc::Commander
-{
-    private:
-        void execute(ares::core::CommandType type, int unitId) override;
-};
 
 class Module final : public BWAPI::AIModule
                    , public core::abc::Dispatcher<core::abc::GameEventListener>

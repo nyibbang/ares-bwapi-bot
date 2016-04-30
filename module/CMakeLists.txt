@@ -29,6 +29,8 @@ endif()
 ################################################################################
 add_library(AresModule SHARED
     Module.h Module.cpp
+    BroodwarLogger.h BroodwarLogger.cpp
+    Commander.h Commander.cpp
     dll.cpp
 )
 target_include_directories(AresModule
