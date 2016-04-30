@@ -20,8 +20,8 @@
 
 #pragma once
 
-#include "core/abc/Commander.h"
-#include "core/abc/Dispatcher.h"
+#include "core/Commander.h"
+#include "core/Dispatcher.h"
 #include <BWAPI.h>
 #include <forward_list>
 #include <memory>

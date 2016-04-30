@@ -19,8 +19,8 @@
  */
 
 #include "ResourcesHarvester.h"
-#include "abc/Dispatcher.h"
-#include "abc/Commander.h"
+#include "Dispatcher.h"
+#include "Commander.h"
 #include "trace/Trace.h"
 
 namespace ares

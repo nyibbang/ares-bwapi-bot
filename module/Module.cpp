@@ -20,8 +20,8 @@
 
 #include "Module.h"
 #include "core/ResourcesHarvester.h"
-#include "core/abc/GameEventListener.h"
-#include "core/abc/WorkerEventListener.h"
+#include "core/GameEventListener.h"
+#include "core/WorkerEventListener.h"
 #include "core/trace/Trace.h"
 #include "core/trace/Logger.h"
 #include <iostream>
