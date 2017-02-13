@@ -18,7 +18,6 @@
 
 add_executable(AresCoreTest
     TestMain.cpp
-    ResourcesHarvesterTest.cpp
 )
 add_test(NAME AresCoreTest COMMAND AresCoreTest)
 

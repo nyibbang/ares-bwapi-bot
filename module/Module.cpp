@@ -20,23 +20,11 @@
 
 #include "Module.h"
 #include "BroodwarLogger.h"
-#include "core/ResourcesHarvester.h"
-#include "core/GameEventListener.h"
-#include "core/WorkerEventListener.h"
 #include "core/log/Log.h"
 #include <BWAPI/Game.h>
 #include <BWAPI/Player.h>
 #include <BWAPI/Unitset.h>
 #include <iostream>
-
-#define NOTIFY_LISTENERS(type, container, func, ...) \
-    for (type* listener : container) { \
-        listener->func(__VA_ARGS__); \
-    }
-#define NOTIFY_GAME_LISTENERS(func, ...) \
-    NOTIFY_LISTENERS(core::abc::GameEventListener, m_gameListeners, func, __VA_ARGS__)
-#define NOTIFY_WORKER_LISTENERS(func, ...) \
-    NOTIFY_LISTENERS(core::abc::WorkerEventListener, m_workerListeners, func, __VA_ARGS__)
 
 namespace ares
 {
@@ -50,10 +38,6 @@ Module::Module()
 
 void Module::onStart()
 {
-    // Initialize members
-    m_commander.reset(new Commander);
-    m_rscHvst.reset(new core::ResourcesHarvester(*this, *m_commander));
-
     // We do not care about replays
     if (BWAPI::Broodwar->isReplay()) {
         return;
@@ -63,16 +47,14 @@ void Module::onStart()
        be grouped and reduce the bot's APM (Actions Per Minute). */
     BWAPI::Broodwar->setCommandOptimizationLevel(2);
 
-    NOTIFY_GAME_LISTENERS(onStart)
-
 #ifdef ARES_DEBUG_BUILD
-    BWAPI::Broodwar->sendText("Ares version %d.%d.%d-debug", ARES_MAJOR_VERSION,
-                              ARES_MINOR_VERSION, ARES_PATCH_VERSION);
+            BWAPI::Broodwar->sendText("Ares version %d.%d.%d-debug", ARES_MAJOR_VERSION,
+                                      ARES_MINOR_VERSION, ARES_PATCH_VERSION);
     BWAPI::Broodwar->registerEvent([](BWAPI::Game*){
         BWAPI::Broodwar->drawTextScreen(BWAPI::Positions::Origin, "%cAres v%d.%d.%d",
                                         BWAPI::Text::Red,
                                         ARES_MAJOR_VERSION, ARES_MINOR_VERSION, ARES_PATCH_VERSION);
-        });
+    });
 #endif
 
     ARES_DEBUG() << "AresBWAPIBot version " << ARES_MAJOR_VERSION << "." << ARES_MINOR_VERSION
@@ -84,7 +66,6 @@ void Module::onStart()
 
 void Module::onEnd(bool isWinner)
 {
-    NOTIFY_GAME_LISTENERS(onEnd, isWinner)
     ARES_DEBUG() << "Game is finished, Ares " << (isWinner ? "won" : "lost") << " the game";
 }
 
@@ -93,111 +74,57 @@ void Module::onSaveGame(std::string gameName)
     ARES_DEBUG() << "Game was saved as " << gameName;
 }
 
+namespace
+{
+BWAPI::Unitset filterSelfUnits(BWAPI::UnitFilter filter)
+{
+    BWAPI::Unitset filteredUnitSet;
+    auto units = BWAPI::Broodwar->self()->getUnits();
+    for (auto&& unit : units)
+    {
+        if (unit && filter(unit))
+        {
+            filteredUnitSet.insert(unit);
+        }
+    }
+    return filteredUnitSet;
+}
+
+bool unitIsActive(BWAPI::Unit unit)
+{
+    return (BWAPI::Filter::Exists && !BWAPI::Filter::IsLockedDown &&
+             !BWAPI::Filter::IsMaelstrommed && !BWAPI::Filter::IsStasised &&
+             !BWAPI::Filter::IsLoaded && BWAPI::Filter::IsPowered &&
+             !BWAPI::Filter::IsStuck && BWAPI::Filter::IsCompleted &&
+             !BWAPI::Filter::IsConstructing)(unit);
+}
+
+bool unitIsIdleWorker(BWAPI::Unit unit)
+{
+
+    return (BWAPI::PtrUnitFilter(&unitIsActive) && BWAPI::Filter::IsWorker && BWAPI::Filter::IsIdle)(unit);
+}
+
+bool unitIsResourceDepot(BWAPI::Unit unit)
+{
+    return (BWAPI::PtrUnitFilter(&unitIsActive) && BWAPI::Filter::IsResourceDepot)(unit);
+}
+
+}
+
 void Module::onFrame()
 {
-    /* Return if the game is a replay or is paused
-       Also prevent spamming by only running our onFrame once every number of latency frames.
-       Latency frames are the number of frames before commands are processed. */
+    // Return if the game is a replay or is paused
+    // Also prevent spamming by only running our onFrame once every number of latency frames.
+    // Latency frames are the number of frames before commands are processed.
     if (BWAPI::Broodwar->isReplay() || BWAPI::Broodwar->isPaused() || !BWAPI::Broodwar->self()
-           || BWAPI::Broodwar->getFrameCount() % BWAPI::Broodwar->getLatencyFrames() != 0)
+            || BWAPI::Broodwar->getFrameCount() % BWAPI::Broodwar->getLatencyFrames() != 0)
     {
         return;
     }
 
-    // Iterate through all the units that we own
-    for (auto&& u : BWAPI::Broodwar->self()->getUnits())
-    {
-        // Ignore the unit if it no longer exists
-        // Make sure to include this block when handling any Unit pointer!
-        if (!u->exists()) {
-            continue;
-        }
-
-        // Ignore the unit if it has one of the following status ailments
-        if (u->isLockedDown() || u->isMaelstrommed() || u->isStasised()) {
-            continue;
-        }
-
-        // Ignore the unit if it is in one of the following states
-        if (u->isLoaded() || !u->isPowered() || u->isStuck()) {
-            continue;
-        }
-
-        // Ignore the unit if it is incomplete or busy constructing
-        if (!u->isCompleted() || u->isConstructing()) {
-            continue;
-        }
-
-        // If the unit is a worker unit and it is idle
-        if (u->getType().isWorker() && u->isIdle())
-        {
-            const auto unitID = u->getID();
-            NOTIFY_WORKER_LISTENERS(onWorkerIdle, unitID);
-        }
-        else if (u->getType().isResourceDepot()) // A resource depot is a Command Center, Nexus, or Hatchery
-        {
-            // Order the depot to construct more workers! But only when it is idle.
-            if (u->isIdle() && !u->train(u->getType().getRace().getWorker()))
-            {
-                // If that fails, draw the error at the location so that you can visibly see what went wrong!
-                // However, drawing the error once will only appear for a single frame
-                // so create an event that keeps it on the screen for some frames
-                BWAPI::Position pos = u->getPosition();
-                BWAPI::Error lastErr = BWAPI::Broodwar->getLastError();
-                BWAPI::Broodwar->registerEvent([pos,lastErr](BWAPI::Game*){
-                        BWAPI::Broodwar->drawTextMap(pos, "%c%s", BWAPI::Text::White, lastErr.c_str());
-                    }, // action
-                    nullptr, // condition
-                    BWAPI::Broodwar->getLatencyFrames());  // frames to run
-
-                // Retrieve the supply provider type in the case that we have run out of supplies
-                BWAPI::UnitType supplyProviderType = u->getType().getRace().getSupplyProvider();
-                static int lastChecked = 0;
-
-                // If we are supply blocked and haven't tried constructing more recently
-                if (lastErr == BWAPI::Errors::Insufficient_Supply &&
-                    lastChecked + 400 < BWAPI::Broodwar->getFrameCount() &&
-                    BWAPI::Broodwar->self()->incompleteUnitCount(supplyProviderType) == 0)
-                {
-                    lastChecked = BWAPI::Broodwar->getFrameCount();
-
-                    // Retrieve a unit that is capable of constructing the supply needed
-                    BWAPI::Unit supplyBuilder = u->getClosestUnit(BWAPI::Filter::GetType == supplyProviderType.whatBuilds().first
-                                                                  && (BWAPI::Filter::IsIdle || BWAPI::Filter::IsGatheringMinerals)
-                                                                  && BWAPI::Filter::IsOwned);
-                    // If a unit was found
-                    if (supplyBuilder)
-                    {
-                        if (supplyProviderType.isBuilding())
-                        {
-                            BWAPI::TilePosition targetBuildLocation = BWAPI::Broodwar->getBuildLocation(supplyProviderType, supplyBuilder->getTilePosition());
-                            if (targetBuildLocation)
-                            {
-                                // Register an event that draws the target build location
-                                BWAPI::Broodwar->registerEvent([targetBuildLocation, supplyProviderType](BWAPI::Game*) {
-                                        BWAPI::Broodwar->drawBoxMap( BWAPI::Position(targetBuildLocation),
-                                            BWAPI::Position(targetBuildLocation + supplyProviderType.tileSize()),
-                                            BWAPI::Colors::Blue);
-                                    },
-                                    nullptr,  // condition
-                                    supplyProviderType.buildTime() + 100 );  // frames to run
-
-                                // Order the builder to construct the supply structure
-                                supplyBuilder->build(supplyProviderType, targetBuildLocation);
-                            }
-                        }
-                        else
-                        {
-                            // Train the supply provider (Overlord) if the provider is not a structure
-                            supplyBuilder->train(supplyProviderType);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    NOTIFY_GAME_LISTENERS(onFrame)
+    sendIdleWorkersToMinerals();
+    buildWorkers();
 }
 
 void Module::onSendText(std::string text)
@@ -255,24 +182,84 @@ void Module::onUnitMorph(BWAPI::Unit unit)
     ARES_DEBUG() << playerName << " morphed unit of type " << unit->getType();
 }
 
-void Module::suscribe(core::abc::GameEventListener& listener)
+void Module::sendIdleWorkersToMinerals()
 {
-    m_gameListeners.push_front(&listener);
+    // send idle workers to mineral fields
+    for (auto&& unit : BWAPI::Broodwar->self()->getUnits())
+    {
+        if (unitIsIdleWorker(unit))
+        {
+            unit->gather(unit->getClosestUnit(BWAPI::Filter::IsMineralField));
+        }
+    }
 }
 
-void Module::unsuscribe(core::abc::GameEventListener& listener)
+void Module::buildWorkers()
 {
-    m_gameListeners.remove(&listener);
-}
+    for (auto&& resourceDepot : filterSelfUnits(&unitIsResourceDepot))
+    {
+        // Order the depot to construct more workers! But only when it is idle.
+        if (resourceDepot->isIdle() && !resourceDepot->train(resourceDepot->getType().getRace().getWorker()))
+        {
+            // If that fails, draw the error at the location so that you can visibly see what went wrong!
+            // However, drawing the error once will only appear for a single frame
+            // so create an event that keeps it on the screen for some frames
+            BWAPI::Position pos = resourceDepot->getPosition();
+            BWAPI::Error lastErr = BWAPI::Broodwar->getLastError();
+            BWAPI::Broodwar->registerEvent(
+                        [pos,lastErr](BWAPI::Game*){
+                            BWAPI::Broodwar->drawTextMap(pos, "%c%s", BWAPI::Text::White, lastErr.c_str());
+                        }, // action
+                        nullptr, // condition
+                        BWAPI::Broodwar->getLatencyFrames());  // frames to run
 
-void Module::suscribe(core::abc::WorkerEventListener& listener)
-{
-    m_workerListeners.push_front(&listener);
-}
+            // Retrieve the supply provider type in the case that we have run out of supplies
+            BWAPI::UnitType supplyProviderType = resourceDepot->getType().getRace().getSupplyProvider();
+            static int lastChecked = 0;
 
-void Module::unsuscribe(core::abc::WorkerEventListener& listener)
-{
-    m_workerListeners.remove(&listener);
+            // If we are supply blocked and haven't tried constructing more recently
+            if (lastErr == BWAPI::Errors::Insufficient_Supply &&
+                    lastChecked + 400 < BWAPI::Broodwar->getFrameCount() &&
+                    BWAPI::Broodwar->self()->incompleteUnitCount(supplyProviderType) == 0)
+            {
+                lastChecked = BWAPI::Broodwar->getFrameCount();
+
+                // Retrieve a unit that is capable of constructing the supply needed
+                BWAPI::Unit supplyBuilder = resourceDepot->getClosestUnit(
+                            BWAPI::Filter::GetType == supplyProviderType.whatBuilds().first &&
+                            (BWAPI::Filter::IsIdle || BWAPI::Filter::IsGatheringMinerals)
+                            && BWAPI::Filter::IsOwned);
+                // If a unit was found
+                if (supplyBuilder)
+                {
+                    if (supplyProviderType.isBuilding())
+                    {
+                        BWAPI::TilePosition targetBuildLocation = BWAPI::Broodwar->getBuildLocation(supplyProviderType,
+                                                                                                    supplyBuilder->getTilePosition());
+                        if (targetBuildLocation)
+                        {
+                            // Register an event that draws the target build location
+                            BWAPI::Broodwar->registerEvent([targetBuildLocation, supplyProviderType](BWAPI::Game*) {
+                                BWAPI::Broodwar->drawBoxMap( BWAPI::Position(targetBuildLocation),
+                                                             BWAPI::Position(targetBuildLocation + supplyProviderType.tileSize()),
+                                                             BWAPI::Colors::Blue);
+                            },
+                            nullptr,  // condition
+                            supplyProviderType.buildTime() + 100 );  // frames to run
+
+                            // Order the builder to construct the supply structure
+                            supplyBuilder->build(supplyProviderType, targetBuildLocation);
+                        }
+                    }
+                    else
+                    {
+                        // Train the supply provider (Overlord) if the provider is not a structure
+                        supplyBuilder->train(supplyProviderType);
+                    }
+                }
+            }
+        }
+    }
 }
 
 }

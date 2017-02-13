@@ -20,31 +20,16 @@
 
 #pragma once
 
-#include "Commander.h"
-#include "core/Dispatcher.h"
 #include <BWAPI/AIModule.h>
 #include <forward_list>
 #include <memory>
 
 namespace ares
 {
-
-namespace core
-{
-namespace abc
-{
-class GameEventListener;
-class WorkerEventListener;
-}
-class ResourcesHarvester;
-}
-
 namespace module
 {
 
 class Module final : public BWAPI::AIModule
-                   , public core::abc::Dispatcher<core::abc::GameEventListener>
-                   , public core::abc::Dispatcher<core::abc::WorkerEventListener>
 {
     public:
         Module();
@@ -60,22 +45,9 @@ class Module final : public BWAPI::AIModule
         void onUnitCreate(BWAPI::Unit unit) override;
         void onUnitMorph(BWAPI::Unit unit) override;
 
-        void suscribe(core::abc::GameEventListener& listener) override;
-        void unsuscribe(core::abc::GameEventListener& listener) override;
-
-        void suscribe(core::abc::WorkerEventListener& listener) override;
-        void unsuscribe(core::abc::WorkerEventListener& listener) override;
-
     private:
-        // It is important that the listeners lists are declared before objects that might be
-        // listeners registered in these lists, because they would unsuscribe from the lists after
-        // they (the lists) have been destroyed. By declaring them first, we ensure that the lists
-        // will be destroyed after the listeners.
-        template <class Type> using PtrList = std::forward_list<Type*>;
-        PtrList<core::abc::GameEventListener> m_gameListeners;
-        PtrList<core::abc::WorkerEventListener> m_workerListeners;
-        std::unique_ptr<Commander> m_commander;
-        std::unique_ptr<core::ResourcesHarvester> m_rscHvst;
+        void sendIdleWorkersToMinerals();
+        void buildWorkers();
 };
 
 }

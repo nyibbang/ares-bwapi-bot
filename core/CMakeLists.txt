@@ -19,13 +19,7 @@
 ################################################################################
 # Core library
 ################################################################################
-add_library(AresCore STATIC
-    GameEventListener.h
-    WorkerEventListener.h
-    Dispatcher.h
-    Commander.h
-    ResourcesHarvester.h ResourcesHarvester.cpp
-)
+add_library(AresCore STATIC dummy.cpp)
 target_include_directories(AresCore
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
