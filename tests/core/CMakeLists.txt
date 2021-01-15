@@ -35,4 +35,4 @@ target_link_libraries(AresCoreTest
     gmock_main
 )
 
-add_subdirectory(LOG)
+add_subdirectory(log)
