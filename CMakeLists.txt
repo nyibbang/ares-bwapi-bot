@@ -1,46 +1,15 @@
-# AresBWAPIBot : A bot for SC:BW using BWAPI library;
-# Copyright (C) 2015 Vincent PALANCHER; Florian LEMEASLE
-#
-# This library is free software; you can redistribute it and/or
-# modify it under the terms of the GNU Lesser General Public
-# License as published by the Free Software Foundation; either
-# version 2.1 of the License, or (at your option) any later version.
-#
-# This library is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public
-# License along with this library; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
-# USA
-
-################################################################################
-# Project
-################################################################################
-project(AresBWAPIBot)
-cmake_minimum_required(VERSION 2.8.11)
-set(${PROJECT_NAME}_MAJOR_VERSION 0)
-set(${PROJECT_NAME}_MINOR_VERSION 2)
-set(${PROJECT_NAME}_PATCH_VERSION 1)
-
-# Default build type
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Debug)
-endif()
-
-# Modules and packages
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/Modules")
-include(EnableCXX11)
-enable_testing()
+cmake_minimum_required(VERSION 3.28)
+project(AresBWAPIBot VERSION 0.2.1)
 
 # Debug libraries should be postfixed with a 'd'
 set(CMAKE_DEBUG_POSTFIX "d")
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 # Find starcraft dir
 set(_PF86 "ProgramFiles(x86)")
-find_path(STARCRAFT_DIR "StarCraft.exe"
+find_path(STARCRAFT_ROOT "StarCraft.exe"
     PATHS
         $ENV{ProgramFiles}
         $ENV{${_PF86}}
@@ -52,31 +21,13 @@ find_path(STARCRAFT_DIR "StarCraft.exe"
     PATH_SUFFIXES "StarCraft"
 )
 
-# Install path
-if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set (CMAKE_INSTALL_PREFIX "${STARCRAFT_DIR}/bwapi-data/AI" CACHE
-        PATH "default install path" FORCE)
-endif()
+find_package(BWAPI REQUIRED)
+find_package(quill REQUIRED)
 
-################################################################################
-# External packages
-################################################################################
-set(CMAKE_THREAD_PREFER_PTHREAD true)
-find_package(Threads REQUIRED)
-set(Boost_USE_MULTITHREADED ON)
-find_package(Boost 1.57 REQUIRED)
-find_package(BWAPI)
-
-################################################################################
-# Configuration
-################################################################################
-include(AresConfigure)
-include_directories(${PROJECT_BINARY_DIR} ${PROJECT_SOURCE_DIR})
-
-################################################################################
-# Subdirectories
-################################################################################
-add_subdirectory(third_party)
 add_subdirectory(core)
 add_subdirectory(module)
-add_subdirectory(tests)
+
+include(CTest)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

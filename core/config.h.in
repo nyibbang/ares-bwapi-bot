@@ -1,6 +1,6 @@
 /*
  * AresBWAPIBot : A bot for SC:BW using BWAPI library;
- * Copyright (C) 2015-2016 Vincent PALANCHER; Florian LEMEASLE
+ * Copyright (C) 2015 Vincent PALANCHER; Florian LEMEASLE
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,18 +20,8 @@
 
 #pragma once
 
-#include "core/log/Logger.h"
-
-namespace ares
-{
-namespace module
-{
-
-class BroodwarLogger final : public core::log::abc::Logger
-{
-    public:
-        void log(const core::log::LogContext&, const std::string& message) override;
-};
-
-}
-}
+// clang-format off
+#define ARES_MAJOR_VERSION @PROJECT_VERSION_MAJOR@
+#define ARES_MINOR_VERSION @PROJECT_VERSION_MINOR@
+#define ARES_PATCH_VERSION @PROJECT_VERSION_PATCH@
+// clang-format on
